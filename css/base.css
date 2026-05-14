@@ -1,0 +1,401 @@
+/* =============================================
+   base.css — Sistema de diseño PaniniCorp
+   Estilo: SaaS educativo premium · soft-gaming
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Paleta Principal ── */
+  --bg-main:          #F7F4EF;
+  --surface:          #FFFFFF;
+  --surface-soft:     #F2F6F8;
+
+  --primary:          #22C55E;
+  --primary-dark:     #16A34A;
+  --secondary:        #B7D9E8;
+  --secondary-dark:   #82BFDA;
+
+  --danger:           #EF4444;
+  --danger-dark:      #DC2626;
+  --warning:          #F59E0B;
+  --warning-dark:     #D97706;
+
+  /* ── Texto ── */
+  --text-main:        #24324A;
+  --text-secondary:   #64748B;
+  --text-muted:       #94A3B8;
+  --text-on-primary:  #FFFFFF;
+
+  /* ── Bordes y Sombras ── */
+  --border-main:      #2F3B52;
+  --border-light:     #CBD5E1;
+  --border-width:     2px;
+
+  --shadow-offset:    5px 5px 0px #2F3B52;
+  --shadow-offset-sm: 3px 3px 0px #2F3B52;
+  --shadow-offset-lg: 8px 8px 0px #2F3B52;
+
+  /* ── Rareza ── */
+  --rare:             #7C3AED;
+  --rare-soft:        #EDE9FE;
+  --legendary:        #F59E0B;
+  --legendary-soft:   #FEF3C7;
+  --common:           #64748B;
+  --common-soft:      #F1F5F9;
+
+  /* ── Tipografía ── */
+  --font-heading:     'Nunito', sans-serif;
+  --font-body:        'DM Sans', sans-serif;
+
+  /* ── Spacing ── */
+  --space-xs:   4px;
+  --space-sm:   8px;
+  --space-md:   16px;
+  --space-lg:   24px;
+  --space-xl:   40px;
+  --space-2xl:  64px;
+
+  /* ── Radios ── */
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-full: 9999px;
+
+  /* ── Transiciones ── */
+  --transition-fast: 140ms ease;
+  --transition-base: 240ms ease;
+
+  /* ── Heredados del tema de empresa (inyectados por theme.js) ── */
+  --color-page-bg:            #F7F4EF;
+  --color-page-border:        #2F3B52;
+  --size-page-border:         2px;
+  --color-sticker-empty-bg:   #E8E2D9;
+  --color-sticker-empty-border: #CBD5E1;
+  --color-sticker-filled-border: #22C55E;
+  --color-text-primary:       #24324A;
+  --color-text-secondary:     #64748B;
+  --color-accent:             #22C55E;
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  background: var(--bg-main);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+/* ── Headings ── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+/* ── Botones Base ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: var(--border-width) solid var(--border-main);
+  box-shadow: var(--shadow-offset-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0px var(--border-main);
+}
+
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--border-main);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-offset-sm);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover { background: var(--primary-dark); }
+
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--text-main);
+}
+
+.btn-secondary:hover { background: var(--secondary-dark); }
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover { background: var(--danger-dark); }
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text-main);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 1.05rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-offset);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-offset);
+  padding: var(--space-lg);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-offset-lg);
+}
+
+/* ── Forms ── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  outline: none;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.form-textarea { resize: vertical; min-height: 80px; }
+
+/* ── Badges de Rareza ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1.5px solid currentColor;
+}
+
+.badge-common    { color: var(--common);    background: var(--common-soft); }
+.badge-rare      { color: var(--rare);      background: var(--rare-soft); }
+.badge-legendary { color: var(--legendary); background: var(--legendary-soft); }
+
+/* ── Feedback / Toasts ── */
+.feedback {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1.5px solid;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: none;
+}
+
+.feedback.visible { display: block; }
+
+.feedback-error   { background: #FEF2F2; color: var(--danger);  border-color: var(--danger); }
+.feedback-success { background: #F0FDF4; color: var(--primary-dark); border-color: var(--primary); }
+.feedback-warning { background: var(--legendary-soft); color: var(--warning-dark); border-color: var(--warning); }
+
+/* ── Auth page (index.html) ── */
+.auth-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: var(--bg-main);
+}
+
+.auth-card {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-offset-lg);
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.auth-logo {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--primary);
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.auth-tabs {
+  display: flex;
+  background: var(--surface-soft);
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
+}
+
+.auth-tabs button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 10px var(--space-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.auth-tabs button.active {
+  background: var(--surface);
+  color: var(--text-main);
+  border: 1.5px solid var(--border-main);
+  box-shadow: var(--shadow-offset-sm);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.auth-form[hidden] { display: none; }
+
+.auth-form input {
+  width: 100%;
+  padding: 12px 16px;
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: 1rem;
+  color: var(--text-main);
+  outline: none;
+  transition: box-shadow var(--transition-fast);
+}
+
+.auth-form input:focus {
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+  border-color: var(--primary);
+}
+
+.auth-form .btn-primary {
+  width: 100%;
+  justify-content: center;
+  padding: 13px;
+  font-size: 1rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-offset-sm);
+}
+
+.auth-error {
+  background: #FEF2F2;
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  display: none;
+}
+
+.auth-error.visible { display: block; }
+
+.auth-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ── Utilities ── */
+.text-center { text-align: center; }
+.text-muted  { color: var(--text-muted); }
+.w-full      { width: 100%; }
+.flex        { display: flex; }
+.flex-col    { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-sm      { gap: var(--space-sm); }
+.gap-md      { gap: var(--space-md); }
+.gap-lg      { gap: var(--space-lg); }
+.mt-sm       { margin-top: var(--space-sm); }
+.mt-md       { margin-top: var(--space-md); }
+.mt-lg       { margin-top: var(--space-lg); }

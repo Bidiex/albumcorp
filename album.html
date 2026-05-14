@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PaniniCorp — Mi Álbum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/sticker.css">
+  <link rel="stylesheet" href="/css/album.css">
+</head>
+<body>
+  <div id="album-container">
+    <div id="progress-bar-container">
+      <div id="progress-track"><div id="progress-fill"></div></div>
+      <span id="progress-text">Cargando...</span>
+    </div>
+    <div id="book">
+      <!-- StPageFlip renderizará aquí -->
+    </div>
+    <div class="album-nav">
+      <button id="btn-prev">← Anterior</button>
+      <button id="btn-next">Siguiente →</button>
+    </div>
+  </div>
+  <button id="btn-open-pack">Cargando...</button>
+  <script type="module" src="/js/album/album.js"></script>
+</body>
+</html>

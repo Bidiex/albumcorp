@@ -1,0 +1,86 @@
+/* sticker.css — Estilos para los cromos y animaciones */
+
+.sticker {
+  aspect-ratio: 3 / 4;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-page-bg, #fff);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  position: relative;
+}
+
+.sticker:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Imagen superior 80% */
+.sticker__image-container {
+  height: 80%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-sticker-empty-bg, #eee);
+  position: relative;
+}
+
+.sticker__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Franja inferior 20% */
+.sticker__info {
+  height: 20%;
+  width: 100%;
+  padding: 0 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: var(--color-page-bg, #fff);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sticker__name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.sticker__role {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+/* Estado Vacío */
+.sticker--empty .sticker__image-container {
+  background-image: url('/placeholder.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 40%;
+}
+
+.sticker--empty .sticker__image {
+  display: none;
+}
+
+.sticker--empty .sticker__name {
+  text-align: center;
+}
+
+.sticker--empty .sticker__role {
+  display: none;
+}

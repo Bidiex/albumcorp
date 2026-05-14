@@ -1,0 +1,18 @@
+{
+  "name": "corp-album",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.2",
+    "page-flip": "^2.0.7"
+  },
+  "devDependencies": {
+    "vite": "^5.2.11"
+  }
+}

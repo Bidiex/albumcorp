@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PaniniCorp — Panel del Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/editor.css">
+</head>
+
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="editor-layout" id="app" style="display:none;">
+
+    <!-- ── Sidebar ── -->
+    <aside class="editor-sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-name">🃏 PaniniCorp</div>
+        <div class="sidebar-company-name" id="sidebar-company-name">Cargando...</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="sidebar-nav-item active" data-section="empresa">
+          <span class="nav-icon">🏢</span>
+          <span>Empresa</span>
+        </button>
+        <button class="sidebar-nav-item" data-section="empleados">
+          <span class="nav-icon">👥</span>
+          <span>Empleados</span>
+        </button>
+        <button class="sidebar-nav-item" data-section="secciones">
+          <span class="nav-icon">📘</span>
+          <span>Secciones</span>
+        </button>
+        <button class="sidebar-nav-item" data-section="layout">
+          <span class="nav-icon">📐</span>
+          <span>Álbum Layout</span>
+        </button>
+        <button class="sidebar-nav-item" data-section="packs">
+          <span class="nav-icon">📦</span>
+          <span>Packs</span>
+        </button>
+        <button class="sidebar-nav-item" data-section="tema">
+          <span class="nav-icon">🎨</span>
+          <span>Tema Visual</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-avatar" id="sidebar-avatar">E</div>
+          <span id="sidebar-user-name">Editor</span>
+        </div>
+        <button class="btn btn-ghost btn-sm w-full" id="btn-logout">
+          🚪 Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ── -->
+    <main class="editor-content">
+
+      <!-- ────── SECCIÓN: EMPRESA ────── -->
+      <section class="editor-section active" id="section-empresa">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="section-icon">🏢</span>
+            Mi Empresa
+          </h1>
+          <p class="section-subtitle">Resumen general de tu álbum corporativo</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon">👥</div>
+            <div class="stat-card-value" id="stat-employees">—</div>
+            <div class="stat-card-label">Empleados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">📘</div>
+            <div class="stat-card-value" id="stat-sections">—</div>
+            <div class="stat-card-label">Secciones</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">📄</div>
+            <div class="stat-card-value" id="stat-pages">—</div>
+            <div class="stat-card-label">Páginas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">✅</div>
+            <div class="stat-card-value" id="stat-active">—</div>
+            <div class="stat-card-label">Publicados</div>
+          </div>
+        </div>
+
+        <!-- Invite link -->
+        <div class="card" style="margin-bottom: var(--space-xl);">
+          <h3 style="font-size:1rem; margin-bottom: var(--space-md);">🔗 Link de Onboarding para tus empleados</h3>
+          <div class="share-link-box">
+            <span id="join-link">—</span>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-link">📋 Copiar</button>
+          </div>
+          <p class="text-muted mt-sm" style="font-size:0.8rem;">Comparte este link con tus empleados para que puedan unirse al álbum.</p>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card">
+          <h3 style="font-size:1rem; margin-bottom: var(--space-md);">⚡ Acciones rápidas</h3>
+          <div style="display:flex; flex-wrap:wrap; gap: var(--space-md);">
+            <button class="btn btn-primary btn-lg" id="btn-go-employees">
+              👥 Gestionar Empleados
+            </button>
+            <button class="btn btn-secondary btn-lg" id="btn-go-layout">
+              📐 Ver Layout del Álbum
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ────── SECCIÓN: EMPLEADOS ────── -->
+      <section class="editor-section" id="section-empleados">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="section-icon">👥</span>
+            Empleados
+          </h1>
+          <p class="section-subtitle">Gestiona la base de datos de tu álbum</p>
+        </div>
+
+        <!-- Formulario agregar empleado -->
+        <div class="add-form" id="form-employee-container">
+          <div class="add-form-title">
+            ➕ Agregar empleado
+          </div>
+
+          <div class="form-row" style="margin-bottom: var(--space-md);">
+            <!-- Photo upload -->
+            <div class="form-group">
+              <label class="form-label">Foto</label>
+              <div class="photo-upload">
+                <label class="photo-upload-area" id="photo-drop-area" for="input-photo">
+                  <span id="photo-preview-container">
+                    <span style="font-size:2rem;">📷</span>
+                    <span class="photo-upload-hint">Haz clic o arrastra una foto</span>
+                  </span>
+                </label>
+                <input type="file" id="input-photo" accept="image/*" style="display:none;">
+              </div>
+            </div>
+
+            <!-- Datos -->
+            <div style="display:flex; flex-direction:column; gap: var(--space-md); flex:1;">
+              <div class="form-group">
+                <label class="form-label" for="input-emp-name">Nombre completo</label>
+                <input type="text" id="input-emp-name" class="form-input" placeholder="María González">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="input-emp-role">Cargo</label>
+                <input type="text" id="input-emp-role" class="form-input" placeholder="Diseñadora Senior">
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap: var(--space-md); flex:1;">
+              <div class="form-group">
+                <label class="form-label" for="input-emp-section">Sección</label>
+                <select id="input-emp-section" class="form-select">
+                  <option value="">— Sin sección —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="input-emp-rarity">Rareza</label>
+                <select id="input-emp-rarity" class="form-select">
+                  <option value="common">⬜ Común</option>
+                  <option value="rare">💜 Raro</option>
+                  <option value="legendary">⭐ Legendario</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="emp-feedback" class="feedback"></div>
+
+          <div style="display:flex; gap: var(--space-md); margin-top: var(--space-md);">
+            <button class="btn btn-primary" id="btn-save-employee">💾 Guardar empleado</button>
+            <button class="btn btn-ghost" id="btn-cancel-employee" style="display:none;">✖ Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Grid de empleados -->
+        <div class="employees-toolbar">
+          <div style="display:flex; gap: var(--space-sm); flex-wrap:wrap; align-items:center;">
+            <input type="text" id="emp-search" class="form-input" style="max-width:220px;" placeholder="🔍 Buscar...">
+            <select id="emp-filter-section" class="form-select" style="max-width:180px;">
+              <option value="">Todas las secciones</option>
+            </select>
+            <select id="emp-filter-rarity" class="form-select" style="max-width:160px;">
+              <option value="">Toda rareza</option>
+              <option value="common">⬜ Común</option>
+              <option value="rare">💜 Raro</option>
+              <option value="legendary">⭐ Legendario</option>
+            </select>
+          </div>
+          <span id="emp-count" class="text-muted" style="font-size:0.85rem; font-weight:500;"></span>
+        </div>
+
+        <div class="employees-grid" id="employees-grid">
+          <!-- JS will populate -->
+        </div>
+      </section>
+
+      <!-- ────── SECCIÓN: SECCIONES ────── -->
+      <section class="editor-section" id="section-secciones">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="section-icon">📘</span>
+            Secciones del Álbum
+          </h1>
+          <p class="section-subtitle">Organiza a tus empleados en grupos temáticos</p>
+        </div>
+
+        <!-- Formulario nueva sección -->
+        <div class="add-form" style="margin-bottom: var(--space-xl);">
+          <div class="add-form-title">➕ Nueva sección</div>
+          <div style="display:flex; gap: var(--space-md); align-items: flex-end;">
+            <div class="form-group" style="flex:1;">
+              <label class="form-label" for="input-section-name">Nombre de la sección</label>
+              <input type="text" id="input-section-name" class="form-input" placeholder="Ej: Tecnología, Gerencia, Marketing...">
+            </div>
+            <button class="btn btn-primary" id="btn-add-section">➕ Agregar</button>
+          </div>
+          <div id="section-feedback" class="feedback mt-sm"></div>
+        </div>
+
+        <div class="sections-list" id="sections-list">
+          <!-- JS will populate -->
+        </div>
+      </section>
+
+      <!-- ────── SECCIÓN: LAYOUT ────── -->
+      <section class="editor-section" id="section-layout">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="section-icon">📐</span>
+            Layout del Álbum
+          </h1>
+          <p class="section-subtitle">Previsualiza la distribución y publica el álbum</p>
+        </div>
+
+        <div class="card" style="margin-bottom: var(--space-xl);">
+          <div style="display:flex; align-items: center; justify-content:space-between; flex-wrap:wrap; gap: var(--space-md);">
+            <div>
+              <h3 style="font-size:1rem;">📤 Publicar Álbum</h3>
+              <p class="text-muted" style="font-size:0.85rem; margin-top:4px;">Asigna páginas y posiciones a todos los empleados activos.</p>
+            </div>
+            <button class="btn btn-primary btn-lg" id="btn-publish">
+              🚀 Publicar álbum
+            </button>
+          </div>
+          <div id="layout-feedback" class="feedback mt-md"></div>
+        </div>
+
+        <h3 style="font-size:1rem; font-weight:700; margin-bottom: var(--space-md);">Vista previa de páginas</h3>
+        <div class="layout-preview" id="layout-preview">
+          <!-- JS will populate -->
+        </div>
+      </section>
+
+      <!-- ────── SECCIÓN: PACKS ────── -->
+      <section class="editor-section" id="section-packs">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="section-icon">📦</span>
+            Configuración de Packs
+          </h1>
+          <p class="section-subtitle">Define cómo y cuándo los empleados reciben sobres</p>
+        </div>
+
+        <div class="add-form" style="max-width: 540px; margin-bottom: var(--space-xl);">
+          <div class="add-form-title">⚙️ Parámetros de sobres</div>
+
+          <div style="display:flex; flex-direction:column; gap: var(--space-lg);">
+            <div class="form-group">
+              <label class="form-label" for="input-pack-size">Stickers por sobre</label>
+              <input type="number" id="input-pack-size" class="form-input" min="1" max="20" value="5">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="input-freq-days">Frecuencia (días por sobre)</label>
+              <input type="number" id="input-freq-days" class="form-input" min="1" max="30" value="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="input-max-acc">Máximo acumulable</label>
+              <input type="number" id="input-max-acc" class="form-input" min="1" max="20" value="5">
+            </div>
+          </div>
+        </div>
+
+        <div style="max-width:540px;">
+          <h3 style="font-family:var(--font-heading); font-size:1rem; font-weight:800; margin-bottom: var(--space-md);">
+            🎲 Probabilidades de Rareza
+          </h3>
+
+          <div style="display:flex; flex-direction:column; gap: var(--space-md);">
+            <!-- Common -->
+            <div class="slider-group">
+              <div class="slider-label-row">
+                <span class="slider-label"><span class="badge badge-common">Común</span></span>
+                <span class="slider-value common-val" id="val-common">70%</span>
+              </div>
+              <input type="range" id="slider-common" class="common-slider" min="0" max="100" value="70">
+            </div>
+
+            <!-- Rare -->
+            <div class="slider-group">
+              <div class="slider-label-row">
+                <span class="slider-label"><span class="badge badge-rare">Raro</span></span>
+                <span class="slider-value rare-val" id="val-rare">25%</span>
+              </div>
+              <input type="range" id="slider-rare" class="rare-slider" min="0" max="100" value="25">
+            </div>
+
+            <!-- Legendary -->
+            <div class="slider-group">
+              <div class="slider-label-row">
+                <span class="slider-label"><span class="badge badge-legendary">Legendario</span></span>
+                <span class="slider-value legendary-val" id="val-legendary">5%</span>
+              </div>
+              <input type="range" id="slider-legendary" class="legendary-slider" min="0" max="100" value="5">
+            </div>
+
+            <div class="prob-total ok" id="prob-total">Total: 100% ✓</div>
+          </div>
+        </div>
+
+        <div id="packs-feedback" class="feedback mt-md" style="max-width:540px;"></div>
+        <button class="btn btn-primary btn-lg mt-md" id="btn-save-packs">💾 Guardar configuración</button>
+      </section>
+
+      <!-- ────── SECCIÓN: TEMA ────── -->
+      <section class="editor-section" id="section-tema">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="section-icon">🎨</span>
+            Tema Visual
+          </h1>
+          <p class="section-subtitle">Personaliza los colores del álbum de tus empleados</p>
+        </div>
+
+        <div class="theme-grid">
+          <div class="color-picker-row">
+            <span class="color-picker-label">🎨 Color de fondo de página</span>
+            <input type="color" id="cp-page-bg" class="color-picker-input" value="#F7F4EF">
+          </div>
+          <div class="color-picker-row">
+            <span class="color-picker-label">🖼️ Borde de página</span>
+            <input type="color" id="cp-page-border" class="color-picker-input" value="#2F3B52">
+          </div>
+          <div class="color-picker-row">
+            <span class="color-picker-label">⬛ Sticker vacío</span>
+            <input type="color" id="cp-sticker-empty" class="color-picker-input" value="#E8E2D9">
+          </div>
+          <div class="color-picker-row">
+            <span class="color-picker-label">✅ Borde sticker lleno</span>
+            <input type="color" id="cp-sticker-filled" class="color-picker-input" value="#22C55E">
+          </div>
+          <div class="color-picker-row">
+            <span class="color-picker-label">🔤 Texto principal</span>
+            <input type="color" id="cp-text-primary" class="color-picker-input" value="#24324A">
+          </div>
+          <div class="color-picker-row">
+            <span class="color-picker-label">💬 Texto secundario</span>
+            <input type="color" id="cp-text-secondary" class="color-picker-input" value="#64748B">
+          </div>
+          <div class="color-picker-row">
+            <span class="color-picker-label">⭐ Color de acento</span>
+            <input type="color" id="cp-accent" class="color-picker-input" value="#22C55E">
+          </div>
+          <div class="color-picker-row">
+            <span class="color-picker-label">📚 Color del lomo</span>
+            <input type="color" id="cp-spine" class="color-picker-input" value="#24324A">
+          </div>
+        </div>
+
+        <div id="theme-feedback" class="feedback mt-lg" style="max-width:540px;"></div>
+        <button class="btn btn-primary btn-lg mt-md" id="btn-save-theme">💾 Guardar tema</button>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="/js/editor/employees.js"></script>
+
+</body>
+</html>

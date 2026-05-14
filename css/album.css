@@ -1,0 +1,145 @@
+/* Wrapper general */
+#album-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-xl);
+  gap: var(--space-lg);
+  background-color: var(--color-page-bg);
+}
+
+/* El libro StPageFlip */
+#book {
+  box-shadow: var(--shadow-lg);
+  background: white;
+}
+
+/* Páginas */
+.page {
+  background: var(--color-page-bg);
+  border: var(--size-page-border, 1px) solid var(--color-page-border);
+  padding: var(--space-lg);
+  overflow: hidden;
+  height: 100%;
+}
+
+.page-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.page--cover {
+  background: var(--color-spine);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.album-title {
+  font-family: var(--font-primary, 'Playfair Display', serif);
+  font-size: 2.5rem;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.album-subtitle {
+  color: rgba(255,255,255,0.6);
+  margin-top: var(--space-sm);
+  font-size: 1.2rem;
+}
+
+/* Sección */
+.section-title {
+  font-family: var(--font-primary);
+  font-size: 1.1rem;
+  color: var(--color-accent);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-page-border);
+}
+
+/* Grid 3x3 */
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+/* Navegación */
+.album-nav {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  margin-top: var(--space-md);
+}
+
+.album-nav button {
+  background: var(--color-accent);
+  border: none;
+  color: white;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.album-nav button:hover { filter: brightness(0.9); }
+.album-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Progress bar */
+#progress-bar-container {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+#progress-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(0,0,0,0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+#progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+
+#progress-text {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* Botón abrir sobre */
+#btn-open-pack {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+  z-index: 100;
+}
+
+#btn-open-pack:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+#btn-open-pack:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
