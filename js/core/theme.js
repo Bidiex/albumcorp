@@ -9,12 +9,14 @@ export async function loadTheme(companyId) {
 
   if (error) {
     console.error('Error loading theme:', error);
-    return;
+    return null;
   }
 
   if (data) {
     applyTheme(data);
   }
+
+  return data || null;
 }
 
 export function applyTheme(theme) {

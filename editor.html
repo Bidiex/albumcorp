@@ -390,6 +390,43 @@
           </div>
         </div>
 
+        <div style="max-width:540px; margin-top: var(--space-xl);">
+          <h3 style="font-family:var(--font-heading); font-size:1.1rem; font-weight:800; margin-bottom: var(--space-md);">
+            🖼️ Imágenes y Portadas
+          </h3>
+          <div style="display:flex; flex-direction:column; gap: var(--space-md);">
+            <!-- Portada -->
+            <div class="form-group">
+              <label class="form-label">Portada</label>
+              <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                <input type="file" id="input-cover-file" class="form-input" accept="image/*" style="flex:1;">
+                <div id="preview-cover-link" style="font-size:0.8rem; color:var(--primary); display:none;">
+                  <a href="#" target="_blank">🔗 Ver actual</a>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Contraportada -->
+            <div class="form-group">
+              <label class="form-label">Contraportada</label>
+              <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                <input type="file" id="input-backcover-file" class="form-input" accept="image/*" style="flex:1;">
+                <div id="preview-backcover-link" style="font-size:0.8rem; color:var(--primary); display:none;">
+                  <a href="#" target="_blank">🔗 Ver actual</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fondos de Página -->
+            <div class="form-group" style="margin-top: 10px;">
+              <label class="form-label">Fondos de Páginas Interiores</label>
+              <div id="page-bgs-container" style="display:flex; flex-direction:column; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                <!-- Se inyectan filas dinámicamente -->
+              </div>
+              <button class="btn btn-ghost btn-sm" id="btn-add-page-bg" style="align-self: flex-start;">➕ Agregar fondo de página</button>
+            </div>
+          </div>
+        </div>
         <div id="theme-feedback" class="feedback mt-lg" style="max-width:540px;"></div>
         <button class="btn btn-primary btn-lg mt-md" id="btn-save-theme">💾 Guardar tema</button>
       </section>

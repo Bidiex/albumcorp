@@ -620,30 +620,121 @@ async function loadTheme() {
   Object.entries(map).forEach(([id, val]) => {
     if (val && $(id)) $(id).value = val;
   });
+
+  if (data.cover_image_url) {
+    $('preview-cover-link').style.display = 'block';
+    $('preview-cover-link').querySelector('a').href = data.cover_image_url;
+  }
+  if (data.back_cover_image_url) {
+    $('preview-backcover-link').style.display = 'block';
+    $('preview-backcover-link').querySelector('a').href = data.back_cover_image_url;
+  }
+  
+  if (data.page_backgrounds) {
+    const container = $('page-bgs-container');
+    container.innerHTML = '';
+    Object.entries(data.page_backgrounds).forEach(([pageNum, url]) => {
+      addPageBgRow(pageNum, url);
+    });
+  }
+}
+
+function addPageBgRow(pageNum = '', currentUrl = null) {
+  const container = $('page-bgs-container');
+  const row = document.createElement('div');
+  row.className = 'page-bg-row';
+  row.style.cssText = 'display: flex; gap: var(--space-sm); align-items: center; border: 1px solid var(--border-light); padding: 8px; border-radius: var(--radius-sm);';
+  
+  let linkHtml = currentUrl ? `<a href="${currentUrl}" target="_blank" style="font-size:0.8rem; color:var(--primary); margin-left:8px;" data-current="${currentUrl}">🔗 Ver actual</a>` : '';
+
+  row.innerHTML = `
+    <input type="number" class="form-input page-bg-num" placeholder="Pág N°" value="${pageNum}" min="1" style="width: 80px;">
+    <input type="file" class="form-input page-bg-file" accept="image/*" style="flex:1;">
+    ${linkHtml}
+    <button class="btn btn-danger btn-sm btn-remove-bg">❌</button>
+  `;
+
+  row.querySelector('.btn-remove-bg').addEventListener('click', () => row.remove());
+  container.appendChild(row);
 }
 
 function setupTheme() {
   $('btn-save-theme').addEventListener('click', saveTheme);
+  $('btn-add-page-bg')?.addEventListener('click', () => addPageBgRow());
+}
+
+async function uploadBackgroundFile(file) {
+  if (!file) return null;
+  const path = `${companyId}/${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  const { data: upload, error: uploadErr } = await supabase.storage
+    .from('album-backgrounds')
+    .upload(path, file, { upsert: true });
+
+  if (uploadErr) throw new Error(uploadErr.message);
+
+  const { data: urlData } = supabase.storage.from('album-backgrounds').getPublicUrl(upload.path);
+  return urlData.publicUrl;
 }
 
 async function saveTheme() {
-  const { error } = await supabase.from('album_theme')
-    .update({
-      page_bg_color:         $('cp-page-bg').value,
-      page_border_color:     $('cp-page-border').value,
-      sticker_empty_bg:      $('cp-sticker-empty').value,
-      sticker_filled_border: $('cp-sticker-filled').value,
-      primary_text_color:    $('cp-text-primary').value,
-      secondary_text_color:  $('cp-text-secondary').value,
-      accent_color:          $('cp-accent').value,
-      spine_color:           $('cp-spine').value,
-    })
-    .eq('company_id', companyId);
+  const btn = $('btn-save-theme');
+  btn.disabled = true;
+  btn.textContent = '⏳ Subiendo y guardando...';
 
-  if (error) return showFeedback('theme-feedback', error.message, 'error');
-  showFeedback('theme-feedback', '✅ Tema guardado correctamente.', 'success');
+  try {
+    let coverUrl = $('preview-cover-link')?.querySelector('a')?.href || null;
+    const coverFile = $('input-cover-file')?.files[0];
+    if (coverFile) coverUrl = await uploadBackgroundFile(coverFile);
+
+    let backCoverUrl = $('preview-backcover-link')?.querySelector('a')?.href || null;
+    const backCoverFile = $('input-backcover-file')?.files[0];
+    if (backCoverFile) backCoverUrl = await uploadBackgroundFile(backCoverFile);
+
+    let pageBgs = {};
+    const bgRows = document.querySelectorAll('.page-bg-row');
+    for (const row of bgRows) {
+      const pageNum = row.querySelector('.page-bg-num').value.trim();
+      const fileInput = row.querySelector('.page-bg-file');
+      const currentLink = row.querySelector('a[data-current]');
+      
+      if (!pageNum) continue;
+
+      if (fileInput.files.length > 0) {
+        pageBgs[pageNum] = await uploadBackgroundFile(fileInput.files[0]);
+      } else if (currentLink) {
+        pageBgs[pageNum] = currentLink.getAttribute('data-current');
+      }
+    }
+
+    const { error } = await supabase.from('album_theme')
+      .update({
+        page_bg_color:         $('cp-page-bg').value,
+        page_border_color:     $('cp-page-border').value,
+        sticker_empty_bg:      $('cp-sticker-empty').value,
+        sticker_filled_border: $('cp-sticker-filled').value,
+        primary_text_color:    $('cp-text-primary').value,
+        secondary_text_color:  $('cp-text-secondary').value,
+        accent_color:          $('cp-accent').value,
+        spine_color:           $('cp-spine').value,
+        cover_image_url:       coverUrl,
+        back_cover_image_url:  backCoverUrl,
+        page_backgrounds:      pageBgs
+      })
+      .eq('company_id', companyId);
+
+    if (error) throw error;
+    
+    // Refresh to show updated UI state (links)
+    await loadTheme();
+    showFeedback('theme-feedback', '✅ Tema guardado correctamente.', 'success');
+
+  } catch (err) {
+    showFeedback('theme-feedback', err.message || 'Error al guardar el tema.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Guardar tema';
+  }
 }
-
 // ══════════════════════════════════════════════
 //   HELPERS
 // ══════════════════════════════════════════════
