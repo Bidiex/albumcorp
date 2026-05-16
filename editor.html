@@ -145,16 +145,31 @@
 
           <div class="form-row" style="margin-bottom: var(--space-md);">
             <!-- Photo upload -->
-            <div class="form-group">
-              <label class="form-label">Foto</label>
-              <div class="photo-upload">
-                <label class="photo-upload-area" id="photo-drop-area" for="input-photo">
-                  <span id="photo-preview-container">
-                    <span style="font-size:2rem;">📷</span>
-                    <span class="photo-upload-hint">Haz clic o arrastra una foto</span>
-                  </span>
-                </label>
-                <input type="file" id="input-photo" accept="image/*" style="display:none;">
+            <div style="display:flex; gap: var(--space-md);">
+              <div class="form-group">
+                <label class="form-label">Foto</label>
+                <div class="photo-upload" style="width: 120px;">
+                  <label class="photo-upload-area" id="photo-drop-area" for="input-photo">
+                    <span id="photo-preview-container">
+                      <span style="font-size:2rem;">📷</span>
+                      <span class="photo-upload-hint">Foto</span>
+                    </span>
+                  </label>
+                  <input type="file" id="input-photo" accept="image/*" style="display:none;">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Silueta</label>
+                <div class="photo-upload" style="width: 120px;">
+                  <label class="photo-upload-area" id="placeholder-drop-area" for="input-placeholder">
+                    <span id="placeholder-preview-container">
+                      <span style="font-size:2rem;">👤</span>
+                      <span class="photo-upload-hint">Base</span>
+                    </span>
+                  </label>
+                  <input type="file" id="input-placeholder" accept="image/*" style="display:none;">
+                </div>
               </div>
             </div>
 

@@ -637,29 +637,6 @@ html, body {
   width: 100%;
 }
 
-.sticker-grid .sticker__name {
-  font-size: 0.58rem;
-  line-height: 1.1;
-  margin-bottom: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.sticker-grid .sticker__role {
-  font-size: 0.52rem;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.sticker-grid .sticker__info {
-  padding: 0 1px;
-}
-
 /* ── Section Cover: primera página de cada sección (3×2 grid) ── */
 .sticker-grid--cover {
   flex: none;

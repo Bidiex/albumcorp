@@ -65,20 +65,29 @@
 
 /* Estado Vacío */
 .sticker--empty .sticker__image-container {
-  background-image: url('/placeholder.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 40%;
+  /* Fondo transparente para que la imagen inyectada se vea sin diseño por defecto */
+  background-color: transparent;
 }
 
 .sticker--empty .sticker__image {
-  display: none;
+  /* Imagen inyectada sin filtros ni opacidad */
 }
 
-.sticker--empty .sticker__name {
-  text-align: center;
+/* Glows internos sutiles para indicar rareza en slots vacíos */
+.sticker--empty-rare .sticker__image-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 16px 2px var(--rare, #7C3AED);
+  pointer-events: none;
+  border-radius: inherit;
 }
 
-.sticker--empty .sticker__role {
-  display: none;
+.sticker--empty-legendary .sticker__image-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 16px 2px var(--legendary, #F59E0B);
+  pointer-events: none;
+  border-radius: inherit;
 }

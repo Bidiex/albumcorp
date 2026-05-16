@@ -10,12 +10,14 @@
  */
 export function renderSticker(employee, isCollected) {
   if (!isCollected) {
+    const placeholderSrc = employee.placeholder_url || '';
+    const imgHtml = placeholderSrc ? `<img src="${placeholderSrc}" alt="?" class="sticker__image" loading="lazy">` : '';
+    const safeRarity = employee.rarity || 'common';
+    
     return `
-      <div class="sticker sticker--empty" data-employee-id="${employee.id}">
-        <div class="sticker__image-container"></div>
-        <div class="sticker__info">
-          <div class="sticker__name">?</div>
-          <div class="sticker__role"></div>
+      <div class="sticker sticker--empty sticker--empty-${safeRarity}" data-employee-id="${employee.id}">
+        <div class="sticker__image-container">
+          ${imgHtml}
         </div>
       </div>
     `;
@@ -38,10 +40,6 @@ export function renderSticker(employee, isCollected) {
     <div class="sticker" data-employee-id="${employee.id}" onclick="window.__showStickerDetails('${imageSrc}', '${safeName}', '${safeRole}', '${safeRarity}')">
       <div class="sticker__image-container">
         <img src="${imageSrc}" alt="${employee.name}" class="sticker__image" loading="lazy">
-      </div>
-      <div class="sticker__info">
-        <div class="sticker__name" title="${employee.name}">${employee.name}</div>
-        <div class="sticker__role" title="${employee.role || ''}">${employee.role || ''}</div>
       </div>
     </div>
   `;

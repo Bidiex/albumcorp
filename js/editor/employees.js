@@ -324,6 +324,7 @@ function setupEmployeeFilters() {
 // ── Formulario empleado ──
 let editingEmployeeId = null;
 let selectedPhotoFile = null;
+let selectedPlaceholderFile = null;
 
 function setupEmployeeForm() {
   setupPhotoUpload();
@@ -334,39 +335,68 @@ function setupEmployeeForm() {
 }
 
 function setupPhotoUpload() {
-  const input = $('input-photo');
-  const area = $('photo-drop-area');
+  const inputPhoto = $('input-photo');
+  const areaPhoto = $('photo-drop-area');
 
-  input.addEventListener('change', () => {
-    const file = input.files[0];
+  inputPhoto.addEventListener('change', () => {
+    const file = inputPhoto.files[0];
     if (!file) return;
     selectedPhotoFile = file;
-    showPhotoPreview(URL.createObjectURL(file));
+    showPhotoPreview(URL.createObjectURL(file), 'photo-preview-container');
   });
 
-  area.addEventListener('dragover', (e) => { e.preventDefault(); area.style.borderColor = 'var(--primary)'; });
-  area.addEventListener('dragleave', () => { area.style.borderColor = ''; });
-  area.addEventListener('drop', (e) => {
+  areaPhoto.addEventListener('dragover', (e) => { e.preventDefault(); areaPhoto.style.borderColor = 'var(--primary)'; });
+  areaPhoto.addEventListener('dragleave', () => { areaPhoto.style.borderColor = ''; });
+  areaPhoto.addEventListener('drop', (e) => {
     e.preventDefault();
-    area.style.borderColor = '';
+    areaPhoto.style.borderColor = '';
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
       selectedPhotoFile = file;
-      showPhotoPreview(URL.createObjectURL(file));
+      showPhotoPreview(URL.createObjectURL(file), 'photo-preview-container');
+    }
+  });
+
+  // Placeholder upload
+  const inputPlaceholder = $('input-placeholder');
+  const areaPlaceholder = $('placeholder-drop-area');
+
+  inputPlaceholder.addEventListener('change', () => {
+    const file = inputPlaceholder.files[0];
+    if (!file) return;
+    selectedPlaceholderFile = file;
+    showPhotoPreview(URL.createObjectURL(file), 'placeholder-preview-container');
+  });
+
+  areaPlaceholder.addEventListener('dragover', (e) => { e.preventDefault(); areaPlaceholder.style.borderColor = 'var(--primary)'; });
+  areaPlaceholder.addEventListener('dragleave', () => { areaPlaceholder.style.borderColor = ''; });
+  areaPlaceholder.addEventListener('drop', (e) => {
+    e.preventDefault();
+    areaPlaceholder.style.borderColor = '';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      selectedPlaceholderFile = file;
+      showPhotoPreview(URL.createObjectURL(file), 'placeholder-preview-container');
     }
   });
 }
 
-function showPhotoPreview(url) {
-  $('photo-preview-container').innerHTML = `<img src="${url}" class="photo-upload-preview" alt="Preview">`;
+function showPhotoPreview(url, containerId = 'photo-preview-container') {
+  $(containerId).innerHTML = `<img src="${url}" class="photo-upload-preview" alt="Preview">`;
 }
 
 function resetPhotoPreview() {
   $('photo-preview-container').innerHTML = `
     <span style="font-size:2rem;">📷</span>
-    <span class="photo-upload-hint">Haz clic o arrastra una foto</span>`;
+    <span class="photo-upload-hint">Foto</span>`;
   selectedPhotoFile = null;
   $('input-photo').value = '';
+
+  $('placeholder-preview-container').innerHTML = `
+    <span style="font-size:2rem;">👤</span>
+    <span class="photo-upload-hint">Base</span>`;
+  selectedPlaceholderFile = null;
+  $('input-placeholder').value = '';
 }
 
 async function saveEmployee() {
@@ -377,6 +407,11 @@ async function saveEmployee() {
 
   if (!name) {
     return showFeedback('emp-feedback', 'El nombre es obligatorio.', 'error');
+  }
+
+  if (!editingEmployeeId) {
+    if (!selectedPhotoFile) return showFeedback('emp-feedback', 'La foto del cromo es obligatoria.', 'error');
+    if (!selectedPlaceholderFile) return showFeedback('emp-feedback', 'La silueta/base es obligatoria.', 'error');
   }
 
   const btn = $('btn-save-employee');
@@ -412,8 +447,25 @@ async function saveEmployee() {
     photoUrl = urlData.publicUrl;
   }
 
+  let placeholderUrl = null;
+  if (selectedPlaceholderFile) {
+    let fileToUpload = selectedPlaceholderFile;
+    try { fileToUpload = await normalizeImageToJpeg(selectedPlaceholderFile); } catch (e) {}
+
+    const path = `${companyId}/ph_${Date.now()}.jpg`;
+    const { data: upload, error: uploadErr } = await supabase.storage
+      .from('employee-photos')
+      .upload(path, fileToUpload, { upsert: true, contentType: 'image/jpeg' });
+
+    if (!uploadErr) {
+      const { data: urlData } = supabase.storage.from('employee-photos').getPublicUrl(upload.path);
+      placeholderUrl = urlData.publicUrl;
+    }
+  }
+
   const payload = { company_id: companyId, name, role, section_id: sectionId, rarity };
-  if (photoUrl) payload.photo_url = photoUrl;
+  if (photoUrl !== null) payload.photo_url = photoUrl;
+  if (placeholderUrl !== null) payload.placeholder_url = placeholderUrl;
 
   let error;
   if (editingEmployeeId) {
@@ -454,7 +506,17 @@ function editEmployee(id) {
   $('input-emp-section').value = emp.section_id || '';
   $('input-emp-rarity').value = emp.rarity;
 
-  if (emp.photo_url) showPhotoPreview(emp.photo_url);
+  if (emp.photo_url) {
+    showPhotoPreview(emp.photo_url, 'photo-preview-container');
+    selectedPhotoFile = null;
+  } else {
+    resetPhotoPreview(); // Also resets placeholder
+  }
+
+  if (emp.placeholder_url) {
+    showPhotoPreview(emp.placeholder_url, 'placeholder-preview-container');
+    selectedPlaceholderFile = null;
+  }
 
   $('btn-save-employee').textContent = '💾 Actualizar empleado';
   $('btn-cancel-employee').style.display = 'inline-flex';
