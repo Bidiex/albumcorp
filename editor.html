@@ -179,9 +179,15 @@
                 <label class="form-label" for="input-emp-name">Nombre completo</label>
                 <input type="text" id="input-emp-name" class="form-input" placeholder="María González">
               </div>
-              <div class="form-group">
-                <label class="form-label" for="input-emp-role">Cargo</label>
-                <input type="text" id="input-emp-role" class="form-input" placeholder="Diseñadora Senior">
+              <div style="display:flex; gap: var(--space-md);">
+                <div class="form-group" style="flex:2;">
+                  <label class="form-label" for="input-emp-role">Cargo</label>
+                  <input type="text" id="input-emp-role" class="form-input" placeholder="Diseñadora Senior">
+                </div>
+                <div class="form-group" style="flex:1;">
+                  <label class="form-label" for="input-emp-seniority">Antigüedad (años)</label>
+                  <input type="number" id="input-emp-seniority" class="form-input" min="0" value="0" style="text-align: right;">
+                </div>
               </div>
             </div>
 

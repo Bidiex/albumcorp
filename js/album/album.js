@@ -226,7 +226,7 @@ function initPageFlip() {
     useMouseEvents: true,
     swipeDistance: 30,
     showPageCorners: false,
-    disableFlipByClick: false
+    disableFlipByClick: true
   });
 
   pageFlip.loadFromHTML(pageElements);

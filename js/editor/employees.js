@@ -404,6 +404,7 @@ async function saveEmployee() {
   const role = $('input-emp-role').value.trim();
   const sectionId = $('input-emp-section').value || null;
   const rarity = $('input-emp-rarity').value;
+  const seniorityYears = parseInt($('input-emp-seniority').value, 10) || 0;
 
   if (!name) {
     return showFeedback('emp-feedback', 'El nombre es obligatorio.', 'error');
@@ -463,7 +464,7 @@ async function saveEmployee() {
     }
   }
 
-  const payload = { company_id: companyId, name, role, section_id: sectionId, rarity };
+  const payload = { company_id: companyId, name, role, section_id: sectionId, rarity, seniority_years: seniorityYears };
   if (photoUrl !== null) payload.photo_url = photoUrl;
   if (placeholderUrl !== null) payload.placeholder_url = placeholderUrl;
 
@@ -505,6 +506,7 @@ function editEmployee(id) {
   $('input-emp-role').value = emp.role || '';
   $('input-emp-section').value = emp.section_id || '';
   $('input-emp-rarity').value = emp.rarity;
+  $('input-emp-seniority').value = emp.seniority_years || 0;
 
   if (emp.photo_url) {
     showPhotoPreview(emp.photo_url, 'photo-preview-container');
@@ -531,6 +533,7 @@ function cancelEmployeeEdit() {
   $('input-emp-role').value = '';
   $('input-emp-section').value = '';
   $('input-emp-rarity').value = 'common';
+  $('input-emp-seniority').value = 0;
   resetPhotoPreview();
   $('btn-save-employee').textContent = '💾 Guardar empleado';
   $('btn-cancel-employee').style.display = 'none';

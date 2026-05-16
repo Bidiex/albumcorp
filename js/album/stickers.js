@@ -33,20 +33,23 @@ export function renderSticker(employee, isCollected) {
 
   const imageSrc = employee.photo_url || initialsPlaceholder;
   const safeName = (employee.name || '').replace(/'/g, "\\'");
-  const safeRole = (employee.role || '').replace(/'/g, "\\'");
+  const safeCode = (employee.code || '').replace(/'/g, "\\'");
+  const seniority = employee.seniority_years || 0;
   const safeRarity = employee.rarity || 'common';
 
   return `
-    <div class="sticker" data-employee-id="${employee.id}" onclick="window.__showStickerDetails('${imageSrc}', '${safeName}', '${safeRole}', '${safeRarity}')">
+    <div class="sticker" data-employee-id="${employee.id}" 
+         onpointerdown="event.stopPropagation();"
+         onclick="event.stopPropagation(); window.__showStickerDetails('${imageSrc}', '${safeCode}', ${seniority}, '${safeRarity}')">
       <div class="sticker__image-container">
-        <img src="${imageSrc}" alt="${employee.name}" class="sticker__image" loading="lazy">
+        <img src="${imageSrc}" alt="Sticker" class="sticker__image" loading="lazy">
       </div>
     </div>
   `;
 }
 
 // Global modal function
-window.__showStickerDetails = function(imageSrc, name, role, rarity) {
+window.__showStickerDetails = function(imageSrc, code, seniority, rarity) {
   const existing = document.getElementById('sticker-detail-modal');
   if (existing) existing.remove();
 
@@ -73,9 +76,9 @@ window.__showStickerDetails = function(imageSrc, name, role, rarity) {
 
   modal.innerHTML = `
     <img src="${imageSrc}" style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px 12px 5px 5px; background: #eee;">
-    <div style="text-align: center;">
-      <h3 style="color: #fff; font-family: var(--font-heading); margin-bottom: 4px; font-size: 1.3rem;">${name}</h3>
-      <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 12px;">${role}</p>
+    <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+      <span class="badge" style="background: #334155; color: #f8fafc; border: 1px solid #475569;">#${code}</span>
+      <span class="badge" style="background: #334155; color: #f8fafc; border: 1px solid #475569;">${seniority} ${seniority === 1 ? 'año' : 'años'}</span>
       ${rarityBadge}
     </div>
     <button class="btn btn-ghost" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="document.getElementById('sticker-detail-modal').remove()">Cerrar</button>
