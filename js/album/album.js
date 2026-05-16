@@ -73,23 +73,39 @@ function buildPages(employees, collectedIds, sections) {
   employees.forEach(emp => {
     if (!emp.page_number) return;
     if (!pagesMap[emp.page_number]) {
-      pagesMap[emp.page_number] = Array(9).fill(null);
+      pagesMap[emp.page_number] = { slots: [], sectionId: null };
     }
-    pagesMap[emp.page_number][emp.position - 1] = {
-      data: emp,
-      isCollected: collectedIds.has(emp.id)
-    };
+    const pg = pagesMap[emp.page_number];
+    if (!pg.sectionId) pg.sectionId = emp.section_id;
+    pg.slots.push({ pos: emp.position, data: emp, isCollected: collectedIds.has(emp.id) });
   });
+
+  // Determine which pages are section covers
+  // A section cover is the first page where a given section_id appears
+  const seenSections = new Set();
 
   return Object.keys(pagesMap)
     .sort((a, b) => Number(a) - Number(b))
     .map(pageNum => {
-      const firstEmp = pagesMap[pageNum].find(slot => slot !== null)?.data;
-      const section = sections.find(s => s.id === firstEmp?.section_id);
+      const pg = pagesMap[pageNum];
+      const sectionId = pg.sectionId;
+      const section = sections.find(s => s.id === sectionId);
+      const isSectionCover = sectionId && !seenSections.has(sectionId);
+      if (sectionId) seenSections.add(sectionId);
+
+      const maxSlots = isSectionCover ? 6 : 9;
+      const slotsArray = Array(maxSlots).fill(null);
+      pg.slots.forEach(s => {
+        if (s.pos >= 1 && s.pos <= maxSlots) {
+          slotsArray[s.pos - 1] = { data: s.data, isCollected: s.isCollected };
+        }
+      });
+
       return {
         number: pageNum,
-        slots: pagesMap[pageNum],
-        sectionName: section ? section.name : `Sección ${pageNum}`
+        slots: slotsArray,
+        sectionName: section ? section.name : `Sección ${pageNum}`,
+        isSectionCover
       };
     });
 }
@@ -107,7 +123,7 @@ function renderAlbumHTML(pages) {
     : '';
 
   const coverStyle = currentTheme?.cover_image_url 
-    ? `background-image: url('${currentTheme.cover_image_url}'); background-size: cover; background-position: center;` 
+    ? `background-image: url('${currentTheme.cover_image_url}');` 
     : '';
 
   // Portada — data-density="hard" para StPageFlip
@@ -121,6 +137,16 @@ function renderAlbumHTML(pages) {
     </div>
   `);
 
+  // Página interior de portada — decorativa
+  const innerCoverStyle = currentTheme?.inner_cover_image_url
+    ? `background-image: url('${currentTheme.inner_cover_image_url}');`
+    : '';
+  book.insertAdjacentHTML('beforeend', `
+    <div class="page page--inner-cover">
+      <div class="page-content" style="${innerCoverStyle}"></div>
+    </div>
+  `);
+
   // Páginas de contenido
   pages.forEach(page => {
     const stickerHtml = page.slots.map(slot => {
@@ -128,14 +154,15 @@ function renderAlbumHTML(pages) {
       return renderSticker(slot.data, slot.isCollected);
     }).join('');
 
-    const pageBgUrl = (currentTheme?.page_backgrounds || {})[page.pageNumber];
-    const pageStyle = pageBgUrl ? `background-image: url('${pageBgUrl}'); background-size: cover; background-position: center;` : '';
+    const pageBgUrl = (currentTheme?.page_backgrounds || {})[page.number];
+    const pageStyle = pageBgUrl ? `background-image: url('${pageBgUrl}');` : '';
+
+    const gridClass = page.isSectionCover ? 'sticker-grid sticker-grid--cover' : 'sticker-grid';
 
     book.insertAdjacentHTML('beforeend', `
       <div class="page">
         <div class="page-content" style="${pageStyle}">
-          <h2 class="section-title">${page.sectionName}</h2>
-          <div class="sticker-grid">
+          <div class="${gridClass}">
             ${stickerHtml}
           </div>
         </div>
@@ -143,20 +170,32 @@ function renderAlbumHTML(pages) {
     `);
   });
 
-  // Paridad: 1 portada + N páginas de contenido + 1 contraportada
-  // Si el total es impar → agregar página en blanco antes de la contraportada
-  const totalBeforeBack = 1 + pages.length;
-  if ((totalBeforeBack + 1) % 2 !== 0) {
+  // Paridad: páginas internas = inner-cover + contenido + back-inner
+  // Para StPageFlip con showCover:true las dos tapas hard no cuentan
+  // Las internas (entre las tapas) deben ser par
+  const innerPages = 1 + pages.length + 1; // inner-cover + content + back-inner
+  if (innerPages % 2 !== 0) {
     book.insertAdjacentHTML('beforeend', `<div class="page page--blank"></div>`);
   }
 
-  const backCoverStyle = currentTheme?.back_cover_image_url 
-    ? `background-image: url('${currentTheme.back_cover_image_url}'); background-size: cover; background-position: center;` 
+  // Back inner cover — cara interna de la contraportada (decorativa)
+  const backInnerStyle = currentTheme?.back_inner_image_url
+    ? `background-image: url('${currentTheme.back_inner_image_url}');`
     : '';
+  book.insertAdjacentHTML('beforeend', `
+    <div class="page page--back-inner">
+      <div class="page-content" style="${backInnerStyle}"></div>
+    </div>
+  `);
 
   // Contraportada
+  const backCoverStyle = currentTheme?.back_cover_image_url 
+    ? `background-image: url('${currentTheme.back_cover_image_url}');` 
+    : '';
   book.insertAdjacentHTML('beforeend', `
-    <div class="page page--cover page--back" data-density="hard" style="${backCoverStyle}"></div>
+    <div class="page page--back-cover" data-density="hard">
+      <div class="page-content" style="${backCoverStyle}"></div>
+    </div>
   `);
 }
 
@@ -186,7 +225,7 @@ function initPageFlip() {
     clickEventForward: true,
     useMouseEvents: true,
     swipeDistance: 30,
-    showPageCorners: true,
+    showPageCorners: false,
     disableFlipByClick: false
   });
 

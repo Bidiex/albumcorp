@@ -103,8 +103,19 @@ function loadStats() {
   $('stat-sections').textContent = sections.length;
   const active = employees.filter(e => e.is_active).length;
   $('stat-active').textContent = active;
-  const pages = Math.ceil(employees.length / 9);
-  $('stat-pages').textContent = pages || '—';
+
+  // Calcular páginas con layout Panini (6 first + 9 rest por sección)
+  let totalPages = 0;
+  sections.forEach(sec => {
+    const count = employees.filter(e => e.section_id === sec.id).length;
+    if (count === 0) return;
+    if (count <= 6) {
+      totalPages += 1;
+    } else {
+      totalPages += 1 + Math.ceil((count - 6) / 9);
+    }
+  });
+  $('stat-pages').textContent = totalPages || '—';
 }
 
 // ══════════════════════════════════════════════
@@ -486,11 +497,33 @@ function loadLayoutPreview() {
   }
 
   const maxPage = Math.max(...active.map(e => e.page_number));
+
+  // Detect which pages are section covers
+  const pageSectionMap = {};
+  active.forEach(e => {
+    if (!pageSectionMap[e.page_number]) pageSectionMap[e.page_number] = e.section_id;
+  });
+  const seenSections = new Set();
+  const sectionCoverPages = new Set();
+  for (let p = 1; p <= maxPage; p++) {
+    const secId = pageSectionMap[p];
+    if (secId && !seenSections.has(secId)) {
+      seenSections.add(secId);
+      sectionCoverPages.add(p);
+    }
+  }
+
   let html = '';
 
   for (let p = 1; p <= maxPage; p++) {
     const pageEmps = active.filter(e => e.page_number === p);
-    const slots = Array.from({ length: 9 }, (_, i) => {
+    const isCover = sectionCoverPages.has(p);
+    const slotCount = isCover ? 6 : 9;
+    const cols = 3;
+    const sec = sections.find(s => s.id === pageSectionMap[p]);
+    const label = isCover && sec ? `📘 ${sec.name}` : `Página ${p}`;
+
+    const slots = Array.from({ length: slotCount }, (_, i) => {
       const emp = pageEmps.find(e => e.position === i + 1);
       return emp
         ? `<div class="page-slot filled" title="${emp.name}">${emp.name.split(' ')[0]}</div>`
@@ -499,8 +532,8 @@ function loadLayoutPreview() {
 
     html += `
       <div class="page-preview">
-        <div class="page-preview-header">Página ${p}</div>
-        <div class="page-preview-grid">${slots}</div>
+        <div class="page-preview-header">${label}</div>
+        <div class="page-preview-grid" style="grid-template-columns: repeat(${cols}, 1fr);">${slots}</div>
       </div>`;
   }
 
@@ -625,9 +658,17 @@ async function loadTheme() {
     $('preview-cover-link').style.display = 'block';
     $('preview-cover-link').querySelector('a').href = data.cover_image_url;
   }
+  if (data.inner_cover_image_url) {
+    $('preview-innercover-link').style.display = 'block';
+    $('preview-innercover-link').querySelector('a').href = data.inner_cover_image_url;
+  }
   if (data.back_cover_image_url) {
     $('preview-backcover-link').style.display = 'block';
     $('preview-backcover-link').querySelector('a').href = data.back_cover_image_url;
+  }
+  if (data.back_inner_image_url) {
+    $('preview-backinner-link').style.display = 'block';
+    $('preview-backinner-link').querySelector('a').href = data.back_inner_image_url;
   }
   
   if (data.page_backgrounds) {
@@ -686,9 +727,17 @@ async function saveTheme() {
     const coverFile = $('input-cover-file')?.files[0];
     if (coverFile) coverUrl = await uploadBackgroundFile(coverFile);
 
+    let innerCoverUrl = $('preview-innercover-link')?.querySelector('a')?.href || null;
+    const innerCoverFile = $('input-innercover-file')?.files[0];
+    if (innerCoverFile) innerCoverUrl = await uploadBackgroundFile(innerCoverFile);
+
     let backCoverUrl = $('preview-backcover-link')?.querySelector('a')?.href || null;
     const backCoverFile = $('input-backcover-file')?.files[0];
     if (backCoverFile) backCoverUrl = await uploadBackgroundFile(backCoverFile);
+
+    let backInnerUrl = $('preview-backinner-link')?.querySelector('a')?.href || null;
+    const backInnerFile = $('input-backinner-file')?.files[0];
+    if (backInnerFile) backInnerUrl = await uploadBackgroundFile(backInnerFile);
 
     let pageBgs = {};
     const bgRows = document.querySelectorAll('.page-bg-row');
@@ -717,7 +766,9 @@ async function saveTheme() {
         accent_color:          $('cp-accent').value,
         spine_color:           $('cp-spine').value,
         cover_image_url:       coverUrl,
+        inner_cover_image_url: innerCoverUrl,
         back_cover_image_url:  backCoverUrl,
+        back_inner_image_url:  backInnerUrl,
         page_backgrounds:      pageBgs
       })
       .eq('company_id', companyId);
