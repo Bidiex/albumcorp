@@ -264,22 +264,6 @@ function renderPackButton(packsAvailable, profile, employees, collectedIds) {
 
   btn.onclick = async () => {
     await openPack(profile, (stickers) => {
-      stickers.forEach(sticker => {
-        if (sticker.is_new) {
-          collectedIds.add(sticker.employee_id);
-          const empData = employees.find(e => e.id === sticker.employee_id);
-          if (empData) {
-            const stickerEl = document.querySelector(
-              `.sticker[data-employee-id="${sticker.employee_id}"]`
-            );
-            if (stickerEl) {
-              const temp = document.createElement('div');
-              temp.innerHTML = renderSticker(empData, true);
-              stickerEl.replaceWith(temp.firstElementChild);
-            }
-          }
-        }
-      });
       renderProgressBar(collectedIds.size, employees.length);
       packs = Math.max(0, packs - 1);
       updateButton();
@@ -305,10 +289,31 @@ function renderDevTools(profile) {
     const status = document.getElementById('dev-status');
     status.textContent = 'Agregando...';
 
-    const { data: newCount, error } = await supabase.rpc('fn_dev_add_packs', { p_n: n });
+    const userId = (await supabase.auth.getUser()).data.user.id;
 
-    if (error) {
-      status.textContent = `Error: ${error.message}`;
+    // Leer el valor actual
+    const { data: current, error: readErr } = await supabase
+      .from('user_pack_status')
+      .select('packs_available')
+      .eq('user_id', userId)
+      .single();
+
+    if (readErr && readErr.code !== 'PGRST116') { // PGRST116 es not found (no hay fila aún)
+      status.textContent = `Error: ${readErr.message}`;
+      return;
+    }
+
+    const currentCount = current ? current.packs_available : 0;
+    const newCount = currentCount + n;
+
+    // Update directo — la fila siempre existe tras el insert manual
+    const { error: updateErr } = await supabase
+      .from('user_pack_status')
+      .update({ packs_available: newCount })
+      .eq('user_id', userId);
+
+    if (updateErr) {
+      status.textContent = `Error: ${updateErr.message}`;
       return;
     }
 
@@ -323,12 +328,12 @@ function renderDevTools(profile) {
 async function renderDuplicatesTray(profile, collectedIds) {
   const userId = (await supabase.auth.getUser()).data.user.id;
 
-  // Botón flotante
+  // ── Botón flotante ──
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'btn-duplicates';
   toggleBtn.className = 'duplicates-btn';
-  toggleBtn.textContent = '🔄 Repetidos';
-  
+  toggleBtn.textContent = '🧳 Mi Baúl';
+
   let floatingActions = document.getElementById('floating-actions');
   if (!floatingActions) {
     floatingActions = document.createElement('div');
@@ -338,26 +343,25 @@ async function renderDuplicatesTray(profile, collectedIds) {
   }
   floatingActions.appendChild(toggleBtn);
 
-  // Overlay de cierre
-  const backdrop = document.createElement('div');
-  backdrop.className = 'duplicates-backdrop';
-  document.body.appendChild(backdrop);
+  // ── Modal centrado ──
+  const modalBackdrop = document.createElement('div');
+  modalBackdrop.className = 'baul-backdrop';
+  document.body.appendChild(modalBackdrop);
 
-  // Panel lateral
-  const panel = document.createElement('div');
-  panel.className = 'duplicates-panel';
-  panel.innerHTML = `
-    <div class="duplicates-panel__header">
-      <h3 class="duplicates-panel__title">🔄 Stickers Repetidos</h3>
-      <button class="duplicates-panel__close" id="btn-close-duplicates">✕</button>
+  const modal = document.createElement('div');
+  modal.className = 'baul-modal';
+  modal.innerHTML = `
+    <div class="baul-modal__header">
+      <h3 class="baul-modal__title">🧳 Mi Baúl</h3>
+      <button class="baul-modal__close" id="btn-close-baul">✕</button>
     </div>
-    <div class="duplicates-panel__body" id="duplicates-body"></div>
+    <div class="baul-modal__body" id="baul-body"></div>
   `;
-  document.body.appendChild(panel);
+  document.body.appendChild(modal);
 
-  async function loadDuplicates() {
-    const body = document.getElementById('duplicates-body');
-    body.innerHTML = '<p class="duplicates-empty">Cargando...</p>';
+  async function loadBaul() {
+    const body = document.getElementById('baul-body');
+    body.innerHTML = '<p class="baul-empty">Cargando...</p>';
 
     const { data, error } = await supabase
       .from('user_duplicates')
@@ -367,8 +371,8 @@ async function renderDuplicatesTray(profile, collectedIds) {
       .order('quantity', { ascending: false });
 
     if (error || !data || data.length === 0) {
-      body.innerHTML = '<p class="duplicates-empty">No tienes stickers repetidos aún.</p>';
-      toggleBtn.textContent = '🔄 Repetidos';
+      body.innerHTML = '<p class="baul-empty">Tu baúl está vacío por ahora.</p>';
+      toggleBtn.textContent = '🧳 Mi Baúl';
       return;
     }
 
@@ -376,36 +380,46 @@ async function renderDuplicatesTray(profile, collectedIds) {
     data.forEach(({ quantity, employees: emp }) => {
       if (!emp) return;
       const card = document.createElement('div');
-      card.className = 'duplicate-card';
+      card.className = 'baul-card';
       card.innerHTML = renderSticker(emp, true);
+
       const badge = document.createElement('span');
-      badge.className = 'duplicate-qty';
+      badge.className = 'baul-qty';
       badge.textContent = `×${quantity}`;
       card.appendChild(badge);
-      // Botón Pegar
+
       const alreadyInAlbum = collectedIds.has(emp.id);
       const pasteBtn = document.createElement('button');
-      pasteBtn.className = 'duplicate-paste-btn';
+      pasteBtn.className = 'baul-paste-btn';
+
       if (alreadyInAlbum) {
         pasteBtn.textContent = '✓ En álbum';
         pasteBtn.disabled = true;
-        pasteBtn.classList.add('duplicate-paste-btn--collected');
       } else {
         pasteBtn.textContent = '📌 Pegar';
         pasteBtn.onclick = async () => {
           pasteBtn.disabled = true;
           pasteBtn.textContent = 'Pegando...';
-          const { error } = await supabase.rpc('fn_paste_sticker', { p_employee_id: emp.id });
+          const { error } = await supabase.rpc('fn_paste_sticker', {
+            p_employee_id: emp.id
+          });
           if (!error) {
             collectedIds.add(emp.id);
-            const stickerEl = document.querySelector(`.sticker[data-employee-id="${emp.id}"]`);
+            const stickerEl = document.querySelector(
+              `.sticker[data-employee-id="${emp.id}"]`
+            );
             if (stickerEl) {
               const temp = document.createElement('div');
               temp.innerHTML = renderSticker(emp, true);
               stickerEl.replaceWith(temp.firstElementChild);
             }
-            renderProgressBar(collectedIds.size, (await supabase.from('employees').select('id', { count: 'exact', head: true }).eq('company_id', profile.company_id).eq('is_active', true)).count || collectedIds.size);
-            loadDuplicates();
+            const { count } = await supabase
+              .from('employees')
+              .select('id', { count: 'exact', head: true })
+              .eq('company_id', profile.company_id)
+              .eq('is_active', true);
+            renderProgressBar(collectedIds.size, count || collectedIds.size);
+            loadBaul();
           } else {
             pasteBtn.disabled = false;
             pasteBtn.textContent = '📌 Pegar';
@@ -416,28 +430,26 @@ async function renderDuplicatesTray(profile, collectedIds) {
       body.appendChild(card);
     });
 
-    toggleBtn.textContent = `🔄 Repetidos (${data.length})`;
+    toggleBtn.textContent = `🧳 Mi Baúl (${data.length})`;
   }
 
-  function openPanel() {
-    panel.classList.add('open');
-    backdrop.classList.add('visible');
-    loadDuplicates();
+  function openModal() {
+    modal.classList.add('open');
+    modalBackdrop.classList.add('visible');
+    loadBaul();
   }
 
-  function closePanel() {
-    panel.classList.remove('open');
-    backdrop.classList.remove('visible');
+  function closeModal() {
+    modal.classList.remove('open');
+    modalBackdrop.classList.remove('visible');
   }
 
-  toggleBtn.addEventListener('click', openPanel);
-  document.getElementById('btn-close-duplicates').addEventListener('click', closePanel);
-  backdrop.addEventListener('click', closePanel);
+  toggleBtn.addEventListener('click', openModal);
+  document.getElementById('btn-close-baul').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', closeModal);
 
-  // Exponer refresh global para llamar tras abrir sobre
-  window.__refreshDuplicates = loadDuplicates;
+  window.__refreshDuplicates = loadBaul;
 
-  // Carga inicial del count en el botón
   const { data: initial } = await supabase
     .from('user_duplicates')
     .select('quantity')
@@ -445,7 +457,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
     .gt('quantity', 0);
 
   if (initial && initial.length > 0) {
-    toggleBtn.textContent = `🔄 Repetidos (${initial.length})`;
+    toggleBtn.textContent = `🧳 Mi Baúl (${initial.length})`;
   }
 }
 
