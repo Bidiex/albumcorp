@@ -120,33 +120,54 @@
 }
 
 /* Navegación */
-.album-nav {
-  display: flex;
-  gap: var(--space-md);
-  align-items: center;
-  margin-top: var(--space-md);
-}
-
-.album-nav button {
+/* Navegación - Flechas laterales */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   background: #ffffff;
   border: 2px solid #2F3B52;
   color: #2F3B52;
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-md);
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 0.95rem;
+  width: 58px; /* Horizontal pill shape */
+  height: 38px;
+  border-radius: 999px; /* Pill shape */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-family: var(--font-ui), sans-serif;
+  line-height: 1;
   cursor: pointer;
-  transition: var(--transition-fast);
-  box-shadow: 3px 3px 0px #2F3B52;
-}
-
-.album-nav button:hover {
-  transform: translate(-1px, -1px);
+  z-index: 100;
   box-shadow: 4px 4px 0px #2F3B52;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  padding: 0 0 5px 0; /* Corrección óptica vertical para el chevron */
 }
 
-.album-nav button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.nav-arrow--left {
+  left: -90px;
+}
+
+.nav-arrow--right {
+  right: -90px;
+  padding: 0 0 5px 2px; /* Corrección óptica derecha */
+}
+
+.nav-arrow:hover {
+  background: #f1f5f9;
+  transform: translateY(-50%) translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #2F3B52;
+}
+
+.nav-arrow:active {
+  transform: translateY(-50%) translate(0px, 0px);
+  box-shadow: 2px 2px 0px #2F3B52;
+}
+
+.nav-arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
 
 /* Nuevo progreso simplificado */
 .album-progress {
@@ -158,7 +179,8 @@
   padding: 6px 16px;
   border-radius: 999px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  margin-bottom: -10px; /* Para acercarlo un poco más al libro si hay gap */
+  margin-top: 16px; /* Más aire arriba */
+  margin-bottom: 20px; /* Más separado del libro */
 }
 
 .album-progress__icon {
@@ -173,27 +195,71 @@
   letter-spacing: 0.02em;
 }
 
-/* Botón abrir sobre */
-#btn-open-pack {
+/* Botón abrir sobre y contenedor con Badge */
+.pack-container {
   position: fixed;
   bottom: var(--space-xl);
   right: var(--space-xl);
-  background: #22C55E;
-  color: #ffffff;
-  border: 2px solid #2F3B52;
-  padding: var(--space-md) var(--space-xl);
-  border-radius: var(--radius-full);
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 4px 4px 0px #2F3B52;
-  transition: var(--transition-base);
   z-index: 100;
 }
 
-#btn-open-pack:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #2F3B52; }
-#btn-open-pack:disabled { background: #6B7280; border-color: #4B5563; box-shadow: none; cursor: not-allowed; transform: none; }
+#btn-open-pack {
+  background: #22C55E;
+  color: #ffffff;
+  border: 2px solid #2F3B52;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #2F3B52;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  padding: 0;
+  margin: 0;
+}
+
+#btn-open-pack:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #2F3B52;
+}
+
+#btn-open-pack:active:not(:disabled) {
+  transform: translate(0px, 0px);
+  box-shadow: 2px 2px 0px #2F3B52;
+}
+
+#btn-open-pack:disabled {
+  background: #475569;
+  border-color: #2F3B52;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0px #2F3B52;
+}
+
+.pack-badge-counter {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #EF4444; /* Rojo vibrante */
+  color: #ffffff;
+  border: 2px solid #2F3B52;
+  font-family: var(--font-ui), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0px #2F3B52;
+  pointer-events: none;
+  z-index: 101;
+}
 
 /* ── Pack reveal overlay ── */
 .pack-overlay {
@@ -447,18 +513,19 @@
 /* ── Dev toolbar (localhost only) ── */
 .dev-toolbar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 16px;
+  right: 16px;
   background: #1e293b;
-  border-bottom: 2px solid #F59E0B;
-  padding: 8px 16px;
+  border: 2px solid #F59E0B;
+  border-radius: 12px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   z-index: 9999;
-  font-family: monospace;
-  font-size: 13px;
+  font-family: var(--font-ui), monospace;
+  font-size: 12px;
+  box-shadow: 4px 4px 0px #2F3B52;
 }
 
 .dev-toolbar__label {
@@ -467,21 +534,33 @@
 }
 
 .dev-toolbar__btn {
-  border: none;
-  padding: 4px 12px;
-  border-radius: 4px;
+  border: 2px solid #2F3B52;
+  padding: 4px 8px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
-  font-family: monospace;
-  font-size: 13px;
+  font-family: var(--font-ui), monospace;
+  font-size: 11px;
+  box-shadow: 2px 2px 0px #2F3B52;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.dev-toolbar__btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #2F3B52;
+}
+
+.dev-toolbar__btn:active {
+  transform: translate(0px, 0px);
+  box-shadow: 1px 1px 0px #2F3B52;
 }
 
 .dev-toolbar__btn--green { background: #22C55E; color: #fff; }
 .dev-toolbar__btn--blue  { background: #3B82F6; color: #fff; }
 
 .dev-toolbar__status {
-  color: #94a3b8;
-  margin-left: auto;
+  color: #cbd5e1;
+  font-size: 10px;
 }
 
 /* ── Botones flotantes ── */
@@ -490,6 +569,7 @@
   bottom: var(--space-xl);
   left: var(--space-xl);
   display: flex;
+  flex-direction: column; /* Stacked vertically! */
   gap: var(--space-md);
   z-index: 100;
 }
@@ -687,6 +767,15 @@ html, body {
 }
 
 /* ── Media Queries (Responsive) ── */
+@media (max-width: 1100px) {
+  .nav-arrow--left {
+    left: 12px;
+  }
+  .nav-arrow--right {
+    right: 12px;
+  }
+}
+
 @media (max-width: 768px) {
   #album-container {
     padding: var(--space-md) var(--space-sm);
@@ -701,38 +790,31 @@ html, body {
     font-size: 1rem;
   }
 
-
-
-  /* Agrupar botones inferiores en una sola fila compacta */
+  /* Agrupar botones inferiores en una columna compacta */
   .floating-actions {
     position: static;
-    flex-direction: row;
-    justify-content: center;
+    flex-direction: column; /* stacked vertically on mobile too */
+    align-items: center;
     width: 100%;
     margin-top: 8px;
     gap: 8px;
   }
 
-  #btn-open-pack {
+  .pack-container {
     position: static;
-    margin: 0;
+    margin-top: 4px;
   }
 
   /* Reducir tamaño de texto en los botones para que entren todos */
-  .duplicates-btn, #btn-open-pack, .album-nav button {
+  .duplicates-btn {
     padding: 8px 12px;
     font-size: 0.85rem;
     box-shadow: 2px 2px 0px #2F3B52;
   }
 
-  .duplicates-btn:hover, #btn-open-pack:hover, .album-nav button:hover {
+  .duplicates-btn:hover {
     transform: translate(-1px, -1px);
     box-shadow: 3px 3px 0px #2F3B52;
-  }
-
-  .album-nav {
-    margin-top: 0;
-    gap: 8px;
   }
 
   /* Ajustar tamaño de grid internamente si es necesario */

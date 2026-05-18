@@ -255,23 +255,33 @@ function adjustBookScale() {
   const container = document.getElementById('album-container');
   if (!container) return;
 
-  const availableWidth = container.clientWidth - 32;
+  // Dejar espacio lateral suficiente para que las flechas flotantes no queden apretadas
+  const availableWidth = container.clientWidth - 240;
 
   const progressEl = document.getElementById('progress-container');
-  const navEl = document.querySelector('.album-nav');
   
-  const progressHeight = progressEl ? progressEl.offsetHeight + 16 : 0;
-  const navHeight = navEl ? navEl.offsetHeight + 16 : 0;
-  const paddingHeight = 64; 
+  // Altura del progreso bar con colchón de aire
+  const progressHeight = progressEl ? progressEl.offsetHeight + 32 : 60;
   
-  const availableHeight = window.innerHeight - progressHeight - navHeight - paddingHeight;
+  // En escritorio los botones están en las esquinas y no restan espacio vertical.
+  // En móviles sí se apilan verticalmente bajo el libro.
+  let bottomSpacing = 32;
+  if (window.innerWidth < 768) {
+    const bottomActionsEl = document.getElementById('bottom-actions');
+    bottomSpacing = bottomActionsEl ? bottomActionsEl.offsetHeight + 16 : 80;
+  }
+  
+  // Margen de seguridad vertical adicional
+  const paddingHeight = 40; 
+  
+  const availableHeight = window.innerHeight - progressHeight - bottomSpacing - paddingHeight;
 
   const bookWidth = 900;
   const bookHeight = 600;
 
   const scaleX = availableWidth / bookWidth;
   const scaleY = availableHeight / bookHeight;
-  const scale = Math.min(scaleX, scaleY, 1);
+  const scale = Math.min(scaleX, scaleY, 1); // Capped at 1 for laptops/desktops
 
   book.style.transform = `scale(${scale})`;
   book.style.transformOrigin = 'center center';
@@ -289,17 +299,21 @@ function renderProgressBar(collected, total) {
 
 function renderPackButton(packsAvailable, profile, employees, collectedIds) {
   const btn = document.getElementById('btn-open-pack');
+  const badge = document.getElementById('pack-count-badge');
   if (!btn) return;
 
   let packs = packsAvailable;
 
   function updateButton() {
+    btn.innerHTML = '🎁';
+    if (badge) {
+      badge.textContent = packs;
+    }
+
     if (packs > 0) {
       btn.disabled = false;
-      btn.textContent = `🎁 Abrir sobre (${packs})`;
     } else {
       btn.disabled = true;
-      btn.textContent = 'Sin sobres disponibles';
     }
   }
 

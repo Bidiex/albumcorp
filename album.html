@@ -19,17 +19,19 @@
       <span id="progress-text">Cargando...</span>
     </div>
     <div class="album-viewport">
+      <button id="btn-prev" class="nav-arrow nav-arrow--left" aria-label="Página anterior">‹</button>
       <div id="book">
         <!-- StPageFlip renderizará aquí -->
       </div>
-    </div>
-    <div class="album-nav">
-      <button id="btn-prev">← Anterior</button>
-      <button id="btn-next">Siguiente →</button>
+      <button id="btn-next" class="nav-arrow nav-arrow--right" aria-label="Siguiente página">›</button>
     </div>
     
     <div id="bottom-actions" class="floating-actions">
-      <button id="btn-open-pack">Cargando...</button>
+      <!-- Los botones de Mi Baúl e Intercambiar se insertan aquí vía JS -->
+      <div id="pack-btn-container" class="pack-container">
+        <button id="btn-open-pack">🎁</button>
+        <span id="pack-count-badge" class="pack-badge-counter">0</span>
+      </div>
     </div>
   </div>
 
