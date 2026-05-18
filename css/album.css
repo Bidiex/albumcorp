@@ -277,41 +277,33 @@
 
 .pack-overlay.visible { opacity: 1; }
 
-/* Sobre */
-.pack-envelope {
-  width: 220px;
-  height: 160px;
-  position: relative;
-  perspective: 800px;
-}
-
-.pack-envelope__body {
-  width: 100%;
-  height: 100%;
-  background: var(--color-accent, #C8A96E);
-  border-radius: 12px;
-  position: absolute;
+/* Video de Apertura */
+.pack-video-container {
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(124, 58, 237, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: #000;
+  transition: transform 0.3s ease;
 }
 
-.pack-envelope__flap {
+.pack-video-container:hover {
+  transform: scale(1.02);
+}
+
+.pack-video {
   width: 100%;
-  height: 55%;
-  background: color-mix(in srgb, var(--color-accent, #C8A96E) 75%, #000);
-  position: absolute;
-  top: 0;
-  transform-origin: top center;
-  border-radius: 12px 12px 0 0;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  transition: transform 0.6s ease;
-  transform-style: preserve-3d;
-}
-
-.pack-envelope--open .pack-envelope__flap {
-  transform: rotateX(-180deg);
+  max-width: 420px; /* Tamaño ideal vertical del sobre */
+  height: auto;
+  max-height: 75vh;
+  display: block;
 }
 
 /* Grid de cards */

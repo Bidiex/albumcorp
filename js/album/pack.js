@@ -42,22 +42,29 @@ export function showPackReveal(stickers, onComplete) {
   const overlay = document.createElement('div');
   overlay.className = 'pack-overlay';
   overlay.innerHTML = `
-    <div class="pack-envelope">
-      <div class="pack-envelope__body">🎴</div>
-      <div class="pack-envelope__flap"></div>
+    <div class="pack-video-container">
+      <video class="pack-video" src="/0518.mp4" autoplay playsinline></video>
     </div>
     <div class="pack-stickers"></div>
     <button class="pack-close">Cerrar</button>
   `;
   document.body.appendChild(overlay);
 
-  const envelope     = overlay.querySelector('.pack-envelope');
-  const stickersWrap = overlay.querySelector('.pack-stickers');
-  const closeBtn     = overlay.querySelector('.pack-close');
+  const videoContainer = overlay.querySelector('.pack-video-container');
+  const video          = overlay.querySelector('.pack-video');
+  const stickersWrap   = overlay.querySelector('.pack-stickers');
+  const closeBtn       = overlay.querySelector('.pack-close');
 
   // Ocultar elementos hasta que los necesitemos
   gsap.set(stickersWrap, { display: 'none', opacity: 0 });
   gsap.set(closeBtn,     { opacity: 0, pointerEvents: 'none' });
+
+  // Autoplay con fallback por seguridad
+  video.play().catch(err => {
+    console.log("Autoplay con sonido bloqueado, reproduciendo silenciado:", err);
+    video.muted = true;
+    video.play();
+  });
 
   // ── Fase 1: fade in overlay ──
   gsap.fromTo(overlay,
@@ -66,27 +73,31 @@ export function showPackReveal(stickers, onComplete) {
       onComplete: () => overlay.classList.add('visible') }
   );
 
-  // ── Fase 2: animación del sobre (800ms después) ──
-  gsap.to(envelope, {
-    delay: 0.8,
-    duration: 0.1,
-    onComplete: () => envelope.classList.add('pack-envelope--open')
-  });
+  // ── Gestión del flujo del video (Ended / Skip on click) ──
+  let skipped = false;
+  function skipVideo() {
+    if (skipped) return;
+    skipped = true;
+    
+    // Pausar y remover eventos para evitar disparos múltiples
+    video.pause();
+    
+    gsap.to(videoContainer, {
+      opacity: 0,
+      scale: 0.8,
+      duration: 0.35,
+      ease: 'power2.in',
+      onComplete: () => {
+        videoContainer.style.display = 'none';
+        gsap.set(stickersWrap, { display: 'flex' });
+        gsap.to(stickersWrap, { opacity: 1, duration: 0.35 });
+        revealCards();
+      }
+    });
+  }
 
-  // ── Fase 3: ocultar sobre, mostrar cards (1500ms) ──
-  gsap.to(envelope, {
-    delay: 1.5,
-    opacity: 0,
-    scale: 0.8,
-    duration: 0.3,
-    ease: 'power2.in',
-    onComplete: () => {
-      envelope.style.display = 'none';
-      gsap.set(stickersWrap, { display: 'flex' });
-      gsap.to(stickersWrap, { opacity: 1, duration: 0.3 });
-      revealCards();
-    }
-  });
+  video.addEventListener('ended', skipVideo);
+  videoContainer.addEventListener('click', skipVideo);
 
   function revealCards() {
     stickers.forEach((sticker, index) => {
