@@ -14,19 +14,25 @@
 </head>
 <body>
   <div id="album-container">
-    <div id="progress-bar-container">
-      <div id="progress-track"><div id="progress-fill"></div></div>
+    <div id="progress-container" class="album-progress">
+      <span class="album-progress__icon">🏆</span>
       <span id="progress-text">Cargando...</span>
     </div>
-    <div id="book">
-      <!-- StPageFlip renderizará aquí -->
+    <div class="album-viewport">
+      <div id="book">
+        <!-- StPageFlip renderizará aquí -->
+      </div>
     </div>
     <div class="album-nav">
       <button id="btn-prev">← Anterior</button>
       <button id="btn-next">Siguiente →</button>
     </div>
+    
+    <div id="bottom-actions" class="floating-actions">
+      <button id="btn-open-pack">Cargando...</button>
+    </div>
   </div>
-  <button id="btn-open-pack">Cargando...</button>
+
   <script type="module" src="/js/album/album.js"></script>
 </body>
 </html>

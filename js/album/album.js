@@ -24,6 +24,8 @@ async function initAlbum() {
 
   // 2. Inicializar PageFlip DESPUÉS del mount
   initPageFlip();
+  requestAnimationFrame(adjustBookScale);
+  window.addEventListener('resize', () => requestAnimationFrame(adjustBookScale));
 
   // 3. UI adicional
   renderProgressBar(collectedIds.size, employees.length);
@@ -142,7 +144,7 @@ function renderAlbumHTML(pages) {
     ? `background-image: url('${currentTheme.inner_cover_image_url}');`
     : '';
   book.insertAdjacentHTML('beforeend', `
-    <div class="page page--inner-cover">
+    <div class="page page--inner-cover" data-density="hard">
       <div class="page-content" style="${innerCoverStyle}"></div>
     </div>
   `);
@@ -183,7 +185,7 @@ function renderAlbumHTML(pages) {
     ? `background-image: url('${currentTheme.back_inner_image_url}');`
     : '';
   book.insertAdjacentHTML('beforeend', `
-    <div class="page page--back-inner">
+    <div class="page page--back-inner" data-density="hard">
       <div class="page-content" style="${backInnerStyle}"></div>
     </div>
   `);
@@ -218,7 +220,7 @@ function initPageFlip() {
     flippingTime: 700,
     usePortrait: false,
     startZIndex: 0,
-    autoSize: false,
+    autoSize: true,
     maxShadowOpacity: 0.5,
     showCover: true,
     mobileScrollSupport: false,
@@ -229,19 +231,60 @@ function initPageFlip() {
     disableFlipByClick: true
   });
 
-  pageFlip.loadFromHTML(pageElements);
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
 
-  document.getElementById('btn-prev').addEventListener('click', () => pageFlip.flipPrev());
-  document.getElementById('btn-next').addEventListener('click', () => pageFlip.flipNext());
+  if (btnPrev) {
+    btnPrev.addEventListener('click', () => pageFlip?.flipPrev());
+  }
+
+  if (btnNext) {
+    btnNext.addEventListener('click', () => pageFlip?.flipNext());
+  }
+
+  requestAnimationFrame(() => {
+    pageFlip.loadFromHTML(pageElements);
+  });
+}
+
+function adjustBookScale() {
+  const viewport = document.querySelector('.album-viewport');
+  const book = document.getElementById('book');
+  if (!viewport || !book) return;
+
+  const container = document.getElementById('album-container');
+  if (!container) return;
+
+  const availableWidth = container.clientWidth - 32;
+
+  const progressEl = document.getElementById('progress-container');
+  const navEl = document.querySelector('.album-nav');
+  
+  const progressHeight = progressEl ? progressEl.offsetHeight + 16 : 0;
+  const navHeight = navEl ? navEl.offsetHeight + 16 : 0;
+  const paddingHeight = 64; 
+  
+  const availableHeight = window.innerHeight - progressHeight - navHeight - paddingHeight;
+
+  const bookWidth = 900;
+  const bookHeight = 600;
+
+  const scaleX = availableWidth / bookWidth;
+  const scaleY = availableHeight / bookHeight;
+  const scale = Math.min(scaleX, scaleY, 1);
+
+  book.style.transform = `scale(${scale})`;
+  book.style.transformOrigin = 'center center';
+
+  viewport.style.width = `${bookWidth * scale}px`;
+  viewport.style.height = `${bookHeight * scale}px`;
 }
 
 function renderProgressBar(collected, total) {
   const percent = total > 0 ? Math.round((collected / total) * 100) : 0;
-  const fill = document.getElementById('progress-fill');
   const text = document.getElementById('progress-text');
 
-  if (fill) fill.style.width = `${percent}%`;
-  if (text) text.textContent = `${collected} / ${total} stickers (${percent}%)`;
+  if (text) text.textContent = `${collected} / ${total} - ${percent}%`;
 }
 
 function renderPackButton(packsAvailable, profile, employees, collectedIds) {
@@ -334,14 +377,12 @@ async function renderDuplicatesTray(profile, collectedIds) {
   toggleBtn.className = 'duplicates-btn';
   toggleBtn.textContent = '🧳 Mi Baúl';
 
-  let floatingActions = document.getElementById('floating-actions');
-  if (!floatingActions) {
-    floatingActions = document.createElement('div');
-    floatingActions.id = 'floating-actions';
-    floatingActions.className = 'floating-actions';
-    document.body.appendChild(floatingActions);
+  let bottomActions = document.getElementById('bottom-actions');
+  if (bottomActions) {
+    bottomActions.insertBefore(toggleBtn, bottomActions.firstChild);
+  } else {
+    document.body.appendChild(toggleBtn);
   }
-  floatingActions.appendChild(toggleBtn);
 
   // ── Modal centrado ──
   const modalBackdrop = document.createElement('div');

@@ -25,14 +25,12 @@ export function renderExchangeModal(profile, employees, collectedIds) {
   _exchangeBtn.className = 'exchange-btn';
   _exchangeBtn.innerHTML = '🔀 Intercambiar';
 
-  let floatingActions = document.getElementById('floating-actions');
-  if (!floatingActions) {
-    floatingActions = document.createElement('div');
-    floatingActions.id = 'floating-actions';
-    floatingActions.className = 'floating-actions';
-    document.body.appendChild(floatingActions);
+  let bottomActions = document.getElementById('bottom-actions');
+  if (bottomActions) {
+    bottomActions.insertBefore(_exchangeBtn, bottomActions.firstChild);
+  } else {
+    document.body.appendChild(_exchangeBtn);
   }
-  floatingActions.appendChild(_exchangeBtn);
 
   // ── Backdrop + Modal ──
   const backdrop = document.createElement('div');

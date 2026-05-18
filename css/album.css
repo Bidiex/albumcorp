@@ -12,13 +12,22 @@
   background-color: #1A1612;
 }
 
-/* El libro StPageFlip */
+.album-viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
 #book {
   width: 900px;
   height: 600px;
   box-shadow: var(--shadow-lg);
   position: relative;
   flex-shrink: 0;
+  transform-origin: center center;
 }
 
 #book .stf__wrapper {
@@ -139,37 +148,29 @@
 
 .album-nav button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* Progress bar */
-#progress-bar-container {
-  width: 100%;
-  max-width: 1000px;
-  display: flex;
+/* Nuevo progreso simplificado */
+.album-progress {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  margin-bottom: -10px; /* Para acercarlo un poco más al libro si hay gap */
 }
 
-#progress-track {
-  flex: 1;
-  height: 10px;
-  background: rgba(255,255,255,0.15);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-#progress-fill {
-  height: 100%;
-  background: #22C55E;
-  border-radius: var(--radius-full);
-  transition: width 0.5s ease;
+.album-progress__icon {
+  font-size: 1.1rem;
 }
 
 #progress-text {
-  color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  color: #f8fafc;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  letter-spacing: 0.02em;
 }
 
 /* Botón abrir sobre */
@@ -666,7 +667,8 @@ html, body {
 
 .sticker-grid .sticker {
   gap: 2px;
-  width: 105px;
+  width: 100%;
+  max-width: 115px;
   margin: 0 auto;
 }
 
@@ -683,3 +685,60 @@ html, body {
   grid-template-rows: repeat(2, 1fr);
   align-content: start;
 }
+
+/* ── Media Queries (Responsive) ── */
+@media (max-width: 768px) {
+  #album-container {
+    padding: var(--space-md) var(--space-sm);
+    gap: var(--space-sm);
+  }
+
+  .album-title {
+    font-size: 1.8rem;
+  }
+
+  .album-subtitle {
+    font-size: 1rem;
+  }
+
+
+
+  /* Agrupar botones inferiores en una sola fila compacta */
+  .floating-actions {
+    position: static;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  #btn-open-pack {
+    position: static;
+    margin: 0;
+  }
+
+  /* Reducir tamaño de texto en los botones para que entren todos */
+  .duplicates-btn, #btn-open-pack, .album-nav button {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    box-shadow: 2px 2px 0px #2F3B52;
+  }
+
+  .duplicates-btn:hover, #btn-open-pack:hover, .album-nav button:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px #2F3B52;
+  }
+
+  .album-nav {
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  /* Ajustar tamaño de grid internamente si es necesario */
+  .sticker-grid {
+    gap: 2px;
+  }
+}
+
+
