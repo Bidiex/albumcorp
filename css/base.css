@@ -77,6 +77,12 @@
   --color-text-primary:       #24324A;
   --color-text-secondary:     #64748B;
   --color-accent:             #22C55E;
+  --color-album-bg:         #0D0D0D;
+  --color-nav-btn:          #1E1E1E;
+  --color-nav-btn-text:     #F8FAFC;
+  --color-action-primary:   #22C55E;
+  --color-action-secondary: #3B82F6;
+  --color-shadow:           #000000;
 }
 
 /* ── Reset ── */

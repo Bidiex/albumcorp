@@ -53,6 +53,10 @@
           <span class="nav-icon">🎨</span>
           <span>Tema Visual</span>
         </button>
+        <button class="sidebar-nav-item" data-section="accesos">
+          <span class="nav-icon">🔐</span>
+          <span>Accesos</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -376,39 +380,8 @@
           <p class="section-subtitle">Personaliza los colores del álbum de tus empleados</p>
         </div>
 
-        <div class="theme-grid">
-          <div class="color-picker-row">
-            <span class="color-picker-label">🎨 Color de fondo de página</span>
-            <input type="color" id="cp-page-bg" class="color-picker-input" value="#F7F4EF">
-          </div>
-          <div class="color-picker-row">
-            <span class="color-picker-label">🖼️ Borde de página</span>
-            <input type="color" id="cp-page-border" class="color-picker-input" value="#2F3B52">
-          </div>
-          <div class="color-picker-row">
-            <span class="color-picker-label">⬛ Sticker vacío</span>
-            <input type="color" id="cp-sticker-empty" class="color-picker-input" value="#E8E2D9">
-          </div>
-          <div class="color-picker-row">
-            <span class="color-picker-label">✅ Borde sticker lleno</span>
-            <input type="color" id="cp-sticker-filled" class="color-picker-input" value="#22C55E">
-          </div>
-          <div class="color-picker-row">
-            <span class="color-picker-label">🔤 Texto principal</span>
-            <input type="color" id="cp-text-primary" class="color-picker-input" value="#24324A">
-          </div>
-          <div class="color-picker-row">
-            <span class="color-picker-label">💬 Texto secundario</span>
-            <input type="color" id="cp-text-secondary" class="color-picker-input" value="#64748B">
-          </div>
-          <div class="color-picker-row">
-            <span class="color-picker-label">⭐ Color de acento</span>
-            <input type="color" id="cp-accent" class="color-picker-input" value="#22C55E">
-          </div>
-          <div class="color-picker-row">
-            <span class="color-picker-label">📚 Color del lomo</span>
-            <input type="color" id="cp-spine" class="color-picker-input" value="#24324A">
-          </div>
+        <div class="palette-selector" id="palette-selector">
+          <!-- Cards de paleta generadas por theme-editor.js -->
         </div>
 
         <div style="max-width:540px; margin-top: var(--space-xl);">
@@ -472,6 +445,35 @@
         </div>
         <div id="theme-feedback" class="feedback mt-lg" style="max-width:540px;"></div>
         <button class="btn btn-primary btn-lg mt-md" id="btn-save-theme">💾 Guardar tema</button>
+      </section>
+
+      <!-- ────── SECCIÓN: ACCESOS ────── -->
+      <section class="editor-section" id="section-accesos">
+        <div class="section-header">
+          <h1 class="section-title">
+            <span class="section-icon">🔐</span>
+            Gestión de Accesos
+          </h1>
+          <p class="section-subtitle">
+            Define qué correos pueden registrarse en el álbum de tu empresa
+          </p>
+        </div>
+
+        <div style="max-width: 540px;">
+          <div class="form-group" style="display:flex; gap:8px; align-items:flex-end; margin-bottom: var(--space-lg);">
+            <div style="flex:1;">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" id="input-new-email" class="form-input" placeholder="empleado@empresa.com">
+            </div>
+            <button class="btn btn-primary" id="btn-add-email">
+              Agregar
+            </button>
+          </div>
+          <div id="emails-list" class="emails-list">
+            <p class="empty-state">Cargando...</p>
+          </div>
+          <div id="accesos-feedback" class="feedback mt-md"></div>
+        </div>
       </section>
 
     </main>

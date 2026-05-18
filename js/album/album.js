@@ -1,6 +1,6 @@
 import { PageFlip } from 'page-flip';
 import { supabase } from '../core/supabase.js';
-import { guardRoute } from '../core/auth.js';
+import { guardRoute, logoutUser } from '../core/auth.js';
 import { loadTheme } from '../core/theme.js';
 import { renderSticker } from './stickers.js';
 import { openPack } from './pack.js';
@@ -38,6 +38,8 @@ async function initAlbum() {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     renderDevTools(profile);
   }
+
+  renderUserMenu(profile, collectedIds, employees);
 
   // ── Pre-carga de Recursos (Preloader) ──
   const preloader = document.getElementById('album-preloader');
@@ -754,6 +756,87 @@ async function renderDuplicatesTray(profile, collectedIds) {
   if (initial && initial.length > 0) {
     updateBaulBadge(initial.length);
   }
+}
+
+function renderUserMenu(profile, collectedIds, employees) {
+  const menu = document.getElementById('user-menu');
+  const backdrop = document.getElementById('user-menu-backdrop');
+  if (!menu || !backdrop) return;
+
+  // 1. Crear el botón hamburger con el avatar del usuario
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'btn-user-menu-toggle';
+  toggleBtn.className = 'user-avatar-btn';
+  const initialLetter = (profile.display_name || 'U').charAt(0).toUpperCase();
+  const shortName = (profile.display_name || 'Usuario').split(' ')[0];
+  toggleBtn.innerHTML = `
+    <span class="user-avatar-btn__letter">${initialLetter}</span>
+    <span class="user-avatar-btn__name">${shortName}</span>
+    <span class="user-avatar-btn__icon">☰</span>
+  `;
+
+  toggleBtn.style.cssText = `
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 200;
+  `;
+  document.body.appendChild(toggleBtn);
+
+  // Carga inicial de datos del menú
+  const avatar = document.getElementById('menu-avatar');
+  const name = document.getElementById('menu-name');
+  const stickerCount = document.getElementById('menu-sticker-count');
+  const completion = document.getElementById('menu-completion');
+
+  if (avatar) avatar.textContent = initialLetter;
+  if (name) name.textContent = profile.display_name || 'Usuario';
+
+  function updateMenuStats() {
+    const collected = collectedIds.size;
+    const total = employees.length;
+    const pct = total > 0 ? Math.round((collected / total) * 100) : 0;
+
+    if (stickerCount) stickerCount.textContent = collected;
+    if (completion) completion.textContent = `${pct}%`;
+  }
+
+  updateMenuStats();
+
+  // 2. Controlar la apertura y cierre
+  const openMenu = () => {
+    updateMenuStats();
+    menu.classList.add('open');
+    backdrop.classList.add('visible');
+  };
+
+  const closeMenu = () => {
+    menu.classList.remove('open');
+    backdrop.classList.remove('visible');
+  };
+
+  toggleBtn.addEventListener('click', openMenu);
+  document.getElementById('btn-close-user-menu')?.addEventListener('click', closeMenu);
+  backdrop.addEventListener('click', closeMenu);
+
+  // 6. btn-logout-menu → llama logoutUser()
+  document.getElementById('btn-logout-menu')?.addEventListener('click', async () => {
+    await logoutUser();
+  });
+
+  // 7. btn-delete-account → RPC fn_delete_employee_account → logoutUser()
+  document.getElementById('btn-delete-account')?.addEventListener('click', async () => {
+    const confirmed = confirm('¿Estás absolutamente seguro de que deseas eliminar tu cuenta permanentemente? Esta acción es irreversible y perderás todo tu progreso en el álbum.');
+    if (!confirmed) return;
+
+    const { error } = await supabase.rpc('fn_delete_employee_account');
+    if (error) {
+      alert(`Error al eliminar la cuenta: ${error.message}`);
+    } else {
+      alert('Tu cuenta ha sido eliminada correctamente.');
+      await logoutUser();
+    }
+  });
 }
 
 // Iniciar

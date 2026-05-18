@@ -4,6 +4,7 @@
  */
 import { supabase } from '../core/supabase.js';
 import { guardRoute, logoutUser } from '../core/auth.js';
+import { initThemeEditor } from './theme-editor.js';
 
 // ── Estado global de la sesión ──
 let profile = null;
@@ -72,6 +73,8 @@ async function init() {
   setupPackConfig();
   setupTheme();
   setupLayoutPublish();
+  setupAccesos();
+  loadAccesos();
 }
 
 // ══════════════════════════════════════════════
@@ -704,38 +707,10 @@ async function loadTheme() {
 
   if (!data) return;
 
-  const map = {
-    'cp-page-bg':       data.page_bg_color,
-    'cp-page-border':   data.page_border_color,
-    'cp-sticker-empty': data.sticker_empty_bg,
-    'cp-sticker-filled':data.sticker_filled_border,
-    'cp-text-primary':  data.primary_text_color,
-    'cp-text-secondary':data.secondary_text_color,
-    'cp-accent':        data.accent_color,
-    'cp-spine':         data.spine_color,
-  };
+  // Inicializar theme-editor.js con los datos del tema actual
+  initThemeEditor(companyId, data);
 
-  Object.entries(map).forEach(([id, val]) => {
-    if (val && $(id)) $(id).value = val;
-  });
-
-  if (data.cover_image_url) {
-    $('preview-cover-link').style.display = 'block';
-    $('preview-cover-link').querySelector('a').href = data.cover_image_url;
-  }
-  if (data.inner_cover_image_url) {
-    $('preview-innercover-link').style.display = 'block';
-    $('preview-innercover-link').querySelector('a').href = data.inner_cover_image_url;
-  }
-  if (data.back_cover_image_url) {
-    $('preview-backcover-link').style.display = 'block';
-    $('preview-backcover-link').querySelector('a').href = data.back_cover_image_url;
-  }
-  if (data.back_inner_image_url) {
-    $('preview-backinner-link').style.display = 'block';
-    $('preview-backinner-link').querySelector('a').href = data.back_inner_image_url;
-  }
-  
+  // Cargar fondos de página interiores
   if (data.page_backgrounds) {
     const container = $('page-bgs-container');
     container.innerHTML = '';
@@ -765,91 +740,7 @@ function addPageBgRow(pageNum = '', currentUrl = null) {
 }
 
 function setupTheme() {
-  $('btn-save-theme').addEventListener('click', saveTheme);
   $('btn-add-page-bg')?.addEventListener('click', () => addPageBgRow());
-}
-
-async function uploadBackgroundFile(file) {
-  if (!file) return null;
-  const path = `${companyId}/${Date.now()}_${Math.random().toString(36).substring(7)}`;
-  const { data: upload, error: uploadErr } = await supabase.storage
-    .from('album-backgrounds')
-    .upload(path, file, { upsert: true });
-
-  if (uploadErr) throw new Error(uploadErr.message);
-
-  const { data: urlData } = supabase.storage.from('album-backgrounds').getPublicUrl(upload.path);
-  return urlData.publicUrl;
-}
-
-async function saveTheme() {
-  const btn = $('btn-save-theme');
-  btn.disabled = true;
-  btn.textContent = '⏳ Subiendo y guardando...';
-
-  try {
-    let coverUrl = $('preview-cover-link')?.querySelector('a')?.href || null;
-    const coverFile = $('input-cover-file')?.files[0];
-    if (coverFile) coverUrl = await uploadBackgroundFile(coverFile);
-
-    let innerCoverUrl = $('preview-innercover-link')?.querySelector('a')?.href || null;
-    const innerCoverFile = $('input-innercover-file')?.files[0];
-    if (innerCoverFile) innerCoverUrl = await uploadBackgroundFile(innerCoverFile);
-
-    let backCoverUrl = $('preview-backcover-link')?.querySelector('a')?.href || null;
-    const backCoverFile = $('input-backcover-file')?.files[0];
-    if (backCoverFile) backCoverUrl = await uploadBackgroundFile(backCoverFile);
-
-    let backInnerUrl = $('preview-backinner-link')?.querySelector('a')?.href || null;
-    const backInnerFile = $('input-backinner-file')?.files[0];
-    if (backInnerFile) backInnerUrl = await uploadBackgroundFile(backInnerFile);
-
-    let pageBgs = {};
-    const bgRows = document.querySelectorAll('.page-bg-row');
-    for (const row of bgRows) {
-      const pageNum = row.querySelector('.page-bg-num').value.trim();
-      const fileInput = row.querySelector('.page-bg-file');
-      const currentLink = row.querySelector('a[data-current]');
-      
-      if (!pageNum) continue;
-
-      if (fileInput.files.length > 0) {
-        pageBgs[pageNum] = await uploadBackgroundFile(fileInput.files[0]);
-      } else if (currentLink) {
-        pageBgs[pageNum] = currentLink.getAttribute('data-current');
-      }
-    }
-
-    const { error } = await supabase.from('album_theme')
-      .update({
-        page_bg_color:         $('cp-page-bg').value,
-        page_border_color:     $('cp-page-border').value,
-        sticker_empty_bg:      $('cp-sticker-empty').value,
-        sticker_filled_border: $('cp-sticker-filled').value,
-        primary_text_color:    $('cp-text-primary').value,
-        secondary_text_color:  $('cp-text-secondary').value,
-        accent_color:          $('cp-accent').value,
-        spine_color:           $('cp-spine').value,
-        cover_image_url:       coverUrl,
-        inner_cover_image_url: innerCoverUrl,
-        back_cover_image_url:  backCoverUrl,
-        back_inner_image_url:  backInnerUrl,
-        page_backgrounds:      pageBgs
-      })
-      .eq('company_id', companyId);
-
-    if (error) throw error;
-    
-    // Refresh to show updated UI state (links)
-    await loadTheme();
-    showFeedback('theme-feedback', '✅ Tema guardado correctamente.', 'success');
-
-  } catch (err) {
-    showFeedback('theme-feedback', err.message || 'Error al guardar el tema.', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '💾 Guardar tema';
-  }
 }
 // ══════════════════════════════════════════════
 //   HELPERS
@@ -891,6 +782,82 @@ function normalizeImageToJpeg(file) {
 
     img.src = url;
   });
+}
+
+// ══════════════════════════════════════════════
+//   ACCESOS
+// ══════════════════════════════════════════════
+function setupAccesos() {
+  document.getElementById('btn-add-email')
+    ?.addEventListener('click', addEmail);
+}
+
+async function loadAccesos() {
+  const list = document.getElementById('emails-list');
+  if (!list) return;
+  list.innerHTML = '<p class="empty-state">Cargando...</p>';
+
+  const { data, error } = await supabase
+    .from('allowed_emails')
+    .select('id, email, created_at')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    list.innerHTML = 
+      '<p class="empty-state">No hay correos autorizados aún.</p>';
+    return;
+  }
+
+  list.innerHTML = '';
+  data.forEach(({ id, email }) => {
+    const row = document.createElement('div');
+    row.className = 'email-row';
+    row.innerHTML = `
+      <span class="email-row__text">${email}</span>
+      <button class="btn btn-ghost btn-sm email-row__delete" 
+        data-id="${id}">✕</button>
+    `;
+    row.querySelector('.email-row__delete')
+      .addEventListener('click', () => deleteEmail(id));
+    list.appendChild(row);
+  });
+}
+
+async function addEmail() {
+  const input = document.getElementById('input-new-email');
+  const feedback = document.getElementById('accesos-feedback');
+  const email = input?.value?.trim().toLowerCase();
+  if (!email) return;
+
+  const { error } = await supabase
+    .from('allowed_emails')
+    .insert({ company_id: companyId, email });
+
+  if (error) {
+    if (error.code === '23505') {
+      showFeedback('accesos-feedback', 
+        'Este correo ya está en la lista.', 'error');
+    } else {
+      showFeedback('accesos-feedback', 
+        error.message, 'error');
+    }
+    return;
+  }
+
+  input.value = '';
+  showFeedback('accesos-feedback', 
+    '✓ Correo agregado correctamente.', 'success');
+  loadAccesos();
+}
+
+async function deleteEmail(id) {
+  const { error } = await supabase
+    .from('allowed_emails')
+    .delete()
+    .eq('id', id);
+
+  if (!error) loadAccesos();
 }
 
 // ── Boot ──
