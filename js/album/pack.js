@@ -109,9 +109,25 @@ export function showPackReveal(stickers, onComplete) {
         emp.rarity === 'legendary' ? 'Legendaria' :
         emp.rarity === 'rare'      ? 'Rara'       : 'Común';
 
+      // Wrapper relativo para contener el flip y el glow detrás
+      const cardWrapper = document.createElement('div');
+      cardWrapper.style.position = 'relative';
+      cardWrapper.style.width = '180px';
+      cardWrapper.style.height = '240px';
+
+      // Elemento separado para el glow (detrás de la carta)
+      const cardGlow = document.createElement('div');
+      cardGlow.className = 'pack-card-glow';
+      cardGlow.style.position = 'absolute';
+      cardGlow.style.inset = '0';
+      cardGlow.style.borderRadius = '10px';
+      cardGlow.style.zIndex = '0';
+      cardGlow.style.pointerEvents = 'none';
+
       // Contenedor del flip
       const cardInner = document.createElement('div');
       cardInner.className = 'pack-card-inner';
+      cardInner.style.zIndex = '1';
 
       // Cara trasera — vacía, solo color/gradiente, sin emoji
       const cardBack = document.createElement('div');
@@ -125,13 +141,16 @@ export function showPackReveal(stickers, onComplete) {
       cardInner.appendChild(cardBack);
       cardInner.appendChild(cardFront);
 
+      cardWrapper.appendChild(cardGlow);
+      cardWrapper.appendChild(cardInner);
+
       // Badge nuevo/repetido — DEBAJO del flip, fuera de él
       const statusBadge = document.createElement('span');
       statusBadge.className = `pack-badge ${sticker.is_new ? 'pack-badge--new' : 'pack-badge--repeat'}`;
       statusBadge.textContent = sticker.is_new ? '¡Nueva!' : 'Repetida';
 
       card.appendChild(rarityBadge);
-      card.appendChild(cardInner);
+      card.appendChild(cardWrapper);
       card.appendChild(statusBadge);
 
       // Botón pegar — DEBAJO del badge, fuera del flip, solo si es nueva
@@ -175,18 +194,18 @@ export function showPackReveal(stickers, onComplete) {
               delay: 0.1,
               ease: 'power2.inOut',
               onComplete: () => {
-                // Glow en cardInner después del flip
+                // Glow en cardGlow después del flip, usando box-shadow para evitar repaints del hijo
                 if (emp.rarity === 'legendary') {
-                  gsap.to(cardInner, {
-                    filter: 'drop-shadow(0 0 16px #F59E0B) drop-shadow(0 0 32px #F59E0B88)',
+                  gsap.to(cardGlow, {
+                    boxShadow: '0 0 16px #F59E0B, 0 0 32px #F59E0B88',
                     duration: 0.5,
                     yoyo: true,
                     repeat: -1,
                     ease: 'sine.inOut'
                   });
                 } else if (emp.rarity === 'rare') {
-                  gsap.to(cardInner, {
-                    filter: 'drop-shadow(0 0 12px #7C3AED) drop-shadow(0 0 24px #7C3AED88)',
+                  gsap.to(cardGlow, {
+                    boxShadow: '0 0 12px #7C3AED, 0 0 24px #7C3AED88',
                     duration: 0.6,
                     yoyo: true,
                     repeat: -1,
