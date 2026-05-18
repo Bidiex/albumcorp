@@ -575,6 +575,7 @@
 }
 
 .duplicates-btn {
+  position: relative; /* Para anclar el badge absolute */
   background: #7C3AED;
   color: #ffffff;
   border: 2px solid #2F3B52;
@@ -595,6 +596,26 @@
 .duplicates-btn:hover {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0px #2F3B52;
+}
+
+.baul-badge-counter {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #EF4444; /* Rojo vibrante */
+  color: #ffffff;
+  border: 2px solid #2F3B52;
+  font-family: var(--font-ui), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0px #2F3B52;
+  pointer-events: none;
 }
 
 /* ── Mi Baúl — Modal centrado ── */
@@ -680,6 +701,23 @@
   flex-wrap: wrap;
   gap: 16px;
   align-content: flex-start;
+  justify-content: center;
+}
+
+/* ── Scrollbars personalizadas premium ── */
+.baul-modal__body::-webkit-scrollbar {
+  width: 8px;
+}
+.baul-modal__body::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 4px;
+}
+.baul-modal__body::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+.baul-modal__body::-webkit-scrollbar-thumb:hover {
+  background: #8B5CF6;
 }
 
 .baul-empty {

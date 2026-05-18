@@ -296,7 +296,9 @@ async function renderCreateForm(body) {
         <label class="create-offer__label">🎯 Pido (stickers que quiero)</label>
         <div class="create-offer__grid" id="requesting-grid"></div>
       </div>
-      <button class="create-offer__submit" id="btn-publish-trade">Publicar oferta</button>
+      <div class="create-offer__footer">
+        <button class="create-offer__submit" id="btn-publish-trade">Publicar oferta</button>
+      </div>
     </div>
   `;
 

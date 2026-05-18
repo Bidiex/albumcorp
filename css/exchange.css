@@ -114,7 +114,7 @@
 .exchange-modal__body {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-lg) 0 var(--space-lg);
 }
 
 /* ── Offer cards ── */
@@ -129,6 +129,7 @@
   gap: var(--space-md);
   flex-wrap: wrap;
 }
+.offer-card:last-child { margin-bottom: var(--space-lg); }
 .offer-card--accepted { opacity: 0.6; }
 .offer-card__user {
   color: #94a3b8;
@@ -226,6 +227,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
 }
 
 .sticker-pick {
@@ -287,8 +289,40 @@
   text-align: center;
 }
 
+/* ── Scrollbars personalizadas premium ── */
+.exchange-modal__body::-webkit-scrollbar {
+  width: 8px;
+}
+.exchange-modal__body::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 4px;
+}
+.exchange-modal__body::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+.exchange-modal__body::-webkit-scrollbar-thumb:hover {
+  background: #8B5CF6;
+}
+
+.create-offer__footer {
+  position: sticky;
+  bottom: 0;
+  background: #1e293b; /* Fondo sólido del color del modal para ocultar lo que pase detrás */
+  padding: 16px var(--space-lg);
+  border-top: 1px solid #334155;
+  display: flex;
+  justify-content: flex-end;
+  margin-left: calc(-1 * var(--space-lg));
+  margin-right: calc(-1 * var(--space-lg));
+  margin-bottom: 0 !important; /* Flush a la base, sin gap inferior */
+  z-index: 10;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  box-sizing: border-box;
+}
+
 .create-offer__submit {
-  align-self: flex-end;
   background: #8B5CF6;
   color: #fff;
   border: none;
@@ -298,10 +332,14 @@
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, transform 0.1s;
   box-shadow: 3px 3px 0 #2F3B52;
 }
 .create-offer__submit:hover { opacity: 0.9; }
+.create-offer__submit:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 #2F3B52;
+}
 .create-offer__submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Toast de intercambio ── */

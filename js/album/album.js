@@ -132,9 +132,6 @@ function renderAlbumHTML(pages) {
   book.insertAdjacentHTML('beforeend', `
     <div class="page page--cover" data-density="hard">
       <div class="page-content page-content--cover" style="${coverStyle}">
-        ${logoHtml}
-        <h1 class="album-title">${companyName}</h1>
-        <p class="album-subtitle">Álbum Corporativo</p>
       </div>
     </div>
   `);
@@ -395,6 +392,17 @@ async function renderDuplicatesTray(profile, collectedIds) {
   toggleBtn.className = 'duplicates-btn';
   toggleBtn.textContent = '🧳 Mi Baúl';
 
+  function updateBaulBadge(count) {
+    let badge = toggleBtn.querySelector('.baul-badge-counter');
+    if (badge) badge.remove();
+    if (count > 0) {
+      badge = document.createElement('span');
+      badge.className = 'baul-badge-counter';
+      badge.textContent = count;
+      toggleBtn.appendChild(badge);
+    }
+  }
+
   let bottomActions = document.getElementById('bottom-actions');
   if (bottomActions) {
     bottomActions.insertBefore(toggleBtn, bottomActions.firstChild);
@@ -431,7 +439,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
 
     if (error || !data || data.length === 0) {
       body.innerHTML = '<p class="baul-empty">Tu baúl está vacío por ahora.</p>';
-      toggleBtn.textContent = '🧳 Mi Baúl';
+      updateBaulBadge(0);
       return;
     }
 
@@ -489,7 +497,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
       body.appendChild(card);
     });
 
-    toggleBtn.textContent = `🧳 Mi Baúl (${data.length})`;
+    updateBaulBadge(data.length);
   }
 
   function openModal() {
@@ -516,7 +524,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
     .gt('quantity', 0);
 
   if (initial && initial.length > 0) {
-    toggleBtn.textContent = `🧳 Mi Baúl (${initial.length})`;
+    updateBaulBadge(initial.length);
   }
 }
 
