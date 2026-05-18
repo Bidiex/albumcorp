@@ -632,6 +632,7 @@
   left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
   width: min(860px, 92vw);
+  height: min(620px, 80vh);
   max-height: 80vh;
   background: #1e293b;
   border: 2px solid #334155;

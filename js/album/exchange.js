@@ -282,98 +282,198 @@ async function renderCreateForm(body) {
     return;
   }
 
-  // Estado de selección
+  // Estado de selección que persiste de forma limpia e independiente de las búsquedas
   const offeringSelected = {}; // employee_id → quantity
   const requestingSelected = {}; // employee_id → quantity
 
+  // Variables de filtros en tiempo real
+  let currentRarityFilter = 'all';
+  let currentSearchQuery = '';
+
   body.innerHTML = `
     <div class="create-offer">
+      <div class="baul-filters" style="margin-bottom: var(--space-md); border-radius: 12px; border: 1px solid #334155;">
+        <div class="baul-search-wrapper">
+          <span class="baul-search-icon">🔍</span>
+          <input type="text" id="exchange-create-search" placeholder="Buscar por nombre..." class="baul-search-input" autocomplete="off" />
+        </div>
+        <div class="baul-rarity-filters">
+          <button class="baul-filter-btn active" data-rarity="all">Todos</button>
+          <button class="baul-filter-btn" data-rarity="common">Comunes</button>
+          <button class="baul-filter-btn" data-rarity="rare">Raros</button>
+          <button class="baul-filter-btn" data-rarity="legendary">Legendarios</button>
+        </div>
+      </div>
+      
       <div class="create-offer__section">
         <label class="create-offer__label">📦 Ofrezco (mis repetidos)</label>
-        <div class="create-offer__grid" id="offering-grid"></div>
+        <div class="create-offer__grid" id="offering-grid" style="min-height: 124px;"></div>
       </div>
-      <div class="create-offer__section">
+      
+      <div class="create-offer__section" style="margin-bottom: 80px;">
         <label class="create-offer__label">🎯 Pido (stickers que quiero)</label>
-        <div class="create-offer__grid" id="requesting-grid"></div>
+        <div class="create-offer__grid" id="requesting-grid" style="min-height: 124px;"></div>
       </div>
+      
       <div class="create-offer__footer">
         <button class="create-offer__submit" id="btn-publish-trade">Publicar oferta</button>
       </div>
     </div>
   `;
 
-  // Grid de ofrecidos (mis duplicados)
-  const offeringGrid = body.querySelector('#offering-grid');
-  myDups.forEach(({ employee_id, quantity, employees: emp }) => {
-    if (!emp) return;
-    const pick = document.createElement('div');
-    pick.className = 'sticker-pick';
-    pick.dataset.empId = employee_id;
-    pick.innerHTML = `
-      ${renderSticker(emp, true)}
-      <div class="sticker-pick__name">${emp.name}</div>
-      <div class="sticker-pick__qty">Tengo: ×${quantity}</div>
-      <div class="sticker-pick__counter" style="display:none">
-        <button class="qty-btn" data-dir="-1">−</button>
-        <span class="qty-val">1</span>
-        <button class="qty-btn" data-dir="1">+</button>
-      </div>
-    `;
-    pick.addEventListener('click', (e) => {
-      if (e.target.classList.contains('qty-btn')) return;
-      const isSelected = pick.classList.toggle('selected');
-      const counter = pick.querySelector('.sticker-pick__counter');
-      counter.style.display = isSelected ? 'flex' : 'none';
-      if (isSelected) offeringSelected[employee_id] = 1;
-      else delete offeringSelected[employee_id];
-    });
-    pick.querySelectorAll('.qty-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dir = parseInt(btn.dataset.dir);
-        const cur = offeringSelected[employee_id] || 1;
-        const next = Math.max(1, Math.min(quantity, cur + dir));
-        offeringSelected[employee_id] = next;
-        pick.querySelector('.qty-val').textContent = next;
-      });
-    });
-    offeringGrid.appendChild(pick);
+  // Escuchadores de filtros
+  const searchInput = body.querySelector('#exchange-create-search');
+  searchInput.addEventListener('input', (e) => {
+    currentSearchQuery = e.target.value;
+    filterAndRenderOffering();
+    filterAndRenderRequesting();
   });
 
-  // Grid de pedidos (todos los empleados de la empresa)
-  const requestingGrid = body.querySelector('#requesting-grid');
-  _employees.forEach(emp => {
-    const pick = document.createElement('div');
-    pick.className = 'sticker-pick';
-    pick.dataset.empId = emp.id;
-    pick.innerHTML = `
-      ${renderSticker(emp, _collectedIds.has(emp.id))}
-      <div class="sticker-pick__name">${emp.name}</div>
-      <div class="sticker-pick__counter" style="display:none">
-        <button class="qty-btn" data-dir="-1">−</button>
-        <span class="qty-val">1</span>
-        <button class="qty-btn" data-dir="1">+</button>
-      </div>
-    `;
-    pick.addEventListener('click', (e) => {
-      if (e.target.classList.contains('qty-btn')) return;
-      const isSelected = pick.classList.toggle('selected');
-      const counter = pick.querySelector('.sticker-pick__counter');
-      counter.style.display = isSelected ? 'flex' : 'none';
-      if (isSelected) requestingSelected[emp.id] = 1;
-      else delete requestingSelected[emp.id];
+  const filterBtns = body.querySelectorAll('.baul-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRarityFilter = btn.getAttribute('data-rarity');
+      filterAndRenderOffering();
+      filterAndRenderRequesting();
     });
-    pick.querySelectorAll('.qty-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dir = parseInt(btn.dataset.dir);
-        const cur = requestingSelected[emp.id] || 1;
-        requestingSelected[emp.id] = Math.max(1, cur + dir);
-        pick.querySelector('.qty-val').textContent = requestingSelected[emp.id];
-      });
-    });
-    requestingGrid.appendChild(pick);
   });
+
+  // Renderizador de Ofrecidos
+  function filterAndRenderOffering() {
+    const offeringGrid = body.querySelector('#offering-grid');
+    if (!offeringGrid) return;
+    offeringGrid.innerHTML = '';
+
+    const filtered = myDups.filter(({ employees: emp }) => {
+      if (!emp) return false;
+      if (currentRarityFilter !== 'all' && (emp.rarity || 'common') !== currentRarityFilter) return false;
+      if (currentSearchQuery.trim() !== '') {
+        const name = (emp.name || '').toLowerCase();
+        const query = currentSearchQuery.toLowerCase().trim();
+        if (!name.includes(query)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      offeringGrid.innerHTML = '<p class="offer-empty" style="grid-column: 1/-1; padding: 20px;">No tienes repetidos que coincidan con esta búsqueda.</p>';
+      return;
+    }
+
+    filtered.forEach(({ employee_id, quantity, employees: emp }) => {
+      const pick = document.createElement('div');
+      pick.className = 'sticker-pick';
+      pick.dataset.empId = employee_id;
+
+      const isSel = offeringSelected[employee_id] !== undefined;
+      const qtyVal = offeringSelected[employee_id] || 1;
+
+      pick.innerHTML = `
+        ${renderSticker(emp, true)}
+        <div class="sticker-pick__name">${emp.name}</div>
+        <div class="sticker-pick__qty">Tengo: ×${quantity}</div>
+        <div class="sticker-pick__counter" style="display:${isSel ? 'flex' : 'none'}">
+          <button class="qty-btn" data-dir="-1">−</button>
+          <span class="qty-val">${qtyVal}</span>
+          <button class="qty-btn" data-dir="1">+</button>
+        </div>
+      `;
+
+      if (isSel) pick.classList.add('selected');
+
+      pick.addEventListener('click', (e) => {
+        if (e.target.classList.contains('qty-btn')) return;
+        const isSelectedNow = pick.classList.toggle('selected');
+        const counter = pick.querySelector('.sticker-pick__counter');
+        counter.style.display = isSelectedNow ? 'flex' : 'none';
+        if (isSelectedNow) offeringSelected[employee_id] = 1;
+        else delete offeringSelected[employee_id];
+      });
+
+      pick.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dir = parseInt(btn.dataset.dir);
+          const cur = offeringSelected[employee_id] || 1;
+          const next = Math.max(1, Math.min(quantity, cur + dir));
+          offeringSelected[employee_id] = next;
+          pick.querySelector('.qty-val').textContent = next;
+        });
+      });
+
+      offeringGrid.appendChild(pick);
+    });
+  }
+
+  // Renderizador de Pedidos
+  function filterAndRenderRequesting() {
+    const requestingGrid = body.querySelector('#requesting-grid');
+    if (!requestingGrid) return;
+    requestingGrid.innerHTML = '';
+
+    const filtered = _employees.filter(emp => {
+      if (currentRarityFilter !== 'all' && (emp.rarity || 'common') !== currentRarityFilter) return false;
+      if (currentSearchQuery.trim() !== '') {
+        const name = (emp.name || '').toLowerCase();
+        const query = currentSearchQuery.toLowerCase().trim();
+        if (!name.includes(query)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      requestingGrid.innerHTML = '<p class="offer-empty" style="grid-column: 1/-1; padding: 20px;">No se encontraron stickers con estos filtros.</p>';
+      return;
+    }
+
+    filtered.forEach(emp => {
+      const pick = document.createElement('div');
+      pick.className = 'sticker-pick';
+      pick.dataset.empId = emp.id;
+
+      const isSel = requestingSelected[emp.id] !== undefined;
+      const qtyVal = requestingSelected[emp.id] || 1;
+
+      pick.innerHTML = `
+        ${renderSticker(emp, _collectedIds.has(emp.id))}
+        <div class="sticker-pick__name">${emp.name}</div>
+        <div class="sticker-pick__counter" style="display:${isSel ? 'flex' : 'none'}">
+          <button class="qty-btn" data-dir="-1">−</button>
+          <span class="qty-val">${qtyVal}</span>
+          <button class="qty-btn" data-dir="1">+</button>
+        </div>
+      `;
+
+      if (isSel) pick.classList.add('selected');
+
+      pick.addEventListener('click', (e) => {
+        if (e.target.classList.contains('qty-btn')) return;
+        const isSelectedNow = pick.classList.toggle('selected');
+        const counter = pick.querySelector('.sticker-pick__counter');
+        counter.style.display = isSelectedNow ? 'flex' : 'none';
+        if (isSelectedNow) requestingSelected[emp.id] = 1;
+        else delete requestingSelected[emp.id];
+      });
+
+      pick.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dir = parseInt(btn.dataset.dir);
+          const cur = requestingSelected[emp.id] || 1;
+          requestingSelected[emp.id] = Math.max(1, cur + dir);
+          pick.querySelector('.qty-val').textContent = requestingSelected[emp.id];
+        });
+      });
+
+      requestingGrid.appendChild(pick);
+    });
+  }
+
+  // Renderizado inicial
+  filterAndRenderOffering();
+  filterAndRenderRequesting();
 
   // Publicar
   body.querySelector('#btn-publish-trade').addEventListener('click', async () => {
