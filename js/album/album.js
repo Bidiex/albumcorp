@@ -8,6 +8,7 @@ import { renderExchangeModal } from './exchange.js';
 
 let pageFlip = null;
 let currentTheme = null;
+let flipSound = null;
 
 async function initAlbum() {
   const profile = await guardRoute(['employee', 'editor']);
@@ -37,6 +38,156 @@ async function initAlbum() {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     renderDevTools(profile);
   }
+
+  // ── Pre-carga de Recursos (Preloader) ──
+  const preloader = document.getElementById('album-preloader');
+  const progressBar = document.getElementById('preloader-bar');
+  const progressStatus = document.getElementById('preloader-status');
+  const openBtn = document.getElementById('btn-preloader-open');
+
+  // Recopilar URLs de imágenes a precargar de forma única
+  const imageUrls = new Set();
+  if (currentTheme?.cover_image_url) imageUrls.add(currentTheme.cover_image_url);
+  if (currentTheme?.inner_cover_image_url) imageUrls.add(currentTheme.inner_cover_image_url);
+  if (currentTheme?.logo_url) imageUrls.add(currentTheme.logo_url);
+  
+  if (currentTheme?.page_backgrounds) {
+    Object.values(currentTheme.page_backgrounds).forEach(url => {
+      if (url) imageUrls.add(url);
+    });
+  }
+  
+  employees.forEach(emp => {
+    if (emp.photo_url) imageUrls.add(emp.photo_url);
+  });
+
+  const assetsToLoad = [...imageUrls];
+  const audioUrl = '/the_mountain-football-485564.mp3';
+  const flipSoundUrl = '/freesound_community-small-page-103398.mp3';
+  
+  let loadedCount = 0;
+  const totalAssets = assetsToLoad.length + 2; // +2 para música e himno de página
+
+  function updateProgress() {
+    loadedCount++;
+    const pct = Math.min(100, Math.floor((loadedCount / totalAssets) * 100));
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (progressStatus) {
+      if (pct < 85) {
+        progressStatus.textContent = `Cargando recursos del álbum... ${pct}%`;
+      } else if (pct < 100) {
+        progressStatus.textContent = `Preparando efectos interactivos... ${pct}%`;
+      } else {
+        progressStatus.textContent = '¡Todo listo para comenzar!';
+      }
+    }
+  }
+
+  // Cargar imágenes en paralelo
+  const imagePromises = assetsToLoad.map(url => {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => { updateProgress(); resolve(); };
+      img.onerror = () => { updateProgress(); resolve(); };
+      img.src = url;
+    });
+  });
+
+  // Cargar audio en paralelo
+  let loadedAudio = null;
+  const audioPromise = new Promise(resolve => {
+    const audio = new Audio();
+    audio.loop = true;
+    audio.volume = 0.4;
+    
+    audio.addEventListener('canplaythrough', () => {
+      loadedAudio = audio;
+      updateProgress();
+      resolve();
+    }, { once: true });
+    
+    audio.addEventListener('error', (e) => {
+      console.warn("No se pudo pre-cargar el audio de fondo:", e);
+      updateProgress();
+      resolve();
+    }, { once: true });
+    
+    audio.src = audioUrl;
+    audio.load();
+  });
+
+  // Cargar sonido de pase de página en paralelo
+  const flipPromise = new Promise(resolve => {
+    const audio = new Audio();
+    audio.volume = 0.55;
+    
+    audio.addEventListener('canplaythrough', () => {
+      flipSound = audio;
+      updateProgress();
+      resolve();
+    }, { once: true });
+    
+    audio.addEventListener('error', (e) => {
+      console.warn("No se pudo pre-cargar el efecto de pase de página:", e);
+      updateProgress();
+      resolve();
+    }, { once: true });
+    
+    audio.src = flipSoundUrl;
+    audio.load();
+  });
+
+  // Ejecutar pre-carga completa
+  await Promise.all([...imagePromises, audioPromise, flipPromise]);
+
+  // Completar carga
+  if (progressBar) progressBar.style.width = '100%';
+  if (progressStatus) progressStatus.textContent = '¡Álbum cargado con éxito!';
+
+  if (openBtn && preloader) {
+    if (progressBar) progressBar.parentElement.style.display = 'none';
+    if (progressStatus) progressStatus.style.display = 'none';
+    openBtn.style.display = 'flex';
+    
+    openBtn.onclick = () => {
+      // Intentar reproducir música gracias a la interacción explícita del click
+      if (loadedAudio) {
+        loadedAudio.play().catch(err => console.log("Audio play bloqueado:", err));
+        window.__bgMusic = loadedAudio;
+        initMusicController();
+      }
+      
+      // Animación de salida y remoción
+      preloader.classList.add('preloader--hidden');
+      setTimeout(() => preloader.remove(), 700);
+    };
+  }
+}
+
+function initMusicController() {
+  if (document.getElementById('btn-music-toggle')) return;
+  
+  const btn = document.createElement('button');
+  btn.id = 'btn-music-toggle';
+  btn.className = 'music-toggle-btn';
+  btn.innerHTML = '🎵';
+  btn.setAttribute('aria-label', 'Silenciar música');
+  
+  btn.onclick = () => {
+    if (window.__bgMusic) {
+      if (window.__bgMusic.paused) {
+        window.__bgMusic.play().catch(err => console.log(err));
+        btn.innerHTML = '🎵';
+        btn.classList.remove('music-toggle-btn--muted');
+      } else {
+        window.__bgMusic.pause();
+        btn.innerHTML = '🔇';
+        btn.classList.add('music-toggle-btn--muted');
+      }
+    }
+  };
+  
+  document.body.appendChild(btn);
 }
 
 async function fetchAlbumData(profile) {
@@ -226,6 +377,20 @@ function initPageFlip() {
     swipeDistance: 30,
     showPageCorners: false,
     disableFlipByClick: true
+  });
+
+  // Reproducir el sonido físico de papel únicamente para páginas interiores (no tapas)
+  pageFlip.on('flip', (e) => {
+    const total = pageFlip.getPageCount();
+    const currentPage = pageFlip.getCurrentPageIndex();
+    const targetPage = e.data;
+    
+    if (currentPage > 0 && currentPage < total - 1 && targetPage > 0 && targetPage < total - 1) {
+      if (flipSound) {
+        flipSound.currentTime = 0;
+        flipSound.play().catch(err => console.log("Error playing flip sound:", err));
+      }
+    }
   });
 
   const btnPrev = document.getElementById('btn-prev');
@@ -422,9 +587,43 @@ async function renderDuplicatesTray(profile, collectedIds) {
       <h3 class="baul-modal__title">🧳 Mi Baúl</h3>
       <button class="baul-modal__close" id="btn-close-baul">✕</button>
     </div>
+    <div class="baul-filters">
+      <div class="baul-search-wrapper">
+        <span class="baul-search-icon">🔍</span>
+        <input type="text" id="baul-search-input" placeholder="Buscar por nombre..." class="baul-search-input" autocomplete="off" />
+      </div>
+      <div class="baul-rarity-filters">
+        <button class="baul-filter-btn active" data-rarity="all">Todos</button>
+        <button class="baul-filter-btn" data-rarity="common">Comunes</button>
+        <button class="baul-filter-btn" data-rarity="rare">Raros</button>
+        <button class="baul-filter-btn" data-rarity="legendary">Legendarios</button>
+      </div>
+    </div>
     <div class="baul-modal__body" id="baul-body"></div>
   `;
   document.body.appendChild(modal);
+
+  // Variables de estado del buscador y filtros
+  let rawDuplicates = [];
+  let currentRarityFilter = 'all';
+  let currentSearchQuery = '';
+
+  // Escuchadores de eventos para filtros
+  const searchInput = modal.querySelector('#baul-search-input');
+  searchInput.addEventListener('input', (e) => {
+    currentSearchQuery = e.target.value;
+    filterAndRender();
+  });
+
+  const filterBtns = modal.querySelectorAll('.baul-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRarityFilter = btn.getAttribute('data-rarity');
+      filterAndRender();
+    });
+  });
 
   async function loadBaul() {
     const body = document.getElementById('baul-body');
@@ -440,12 +639,43 @@ async function renderDuplicatesTray(profile, collectedIds) {
     if (error || !data || data.length === 0) {
       body.innerHTML = '<p class="baul-empty">Tu baúl está vacío por ahora.</p>';
       updateBaulBadge(0);
+      rawDuplicates = [];
+      return;
+    }
+
+    rawDuplicates = data.filter(d => d.employees !== null);
+    updateBaulBadge(rawDuplicates.length);
+    filterAndRender();
+  }
+
+  function filterAndRender() {
+    const body = document.getElementById('baul-body');
+    if (!body) return;
+
+    // Filtrar en memoria para una respuesta instantánea
+    const filtered = rawDuplicates.filter(({ employees: emp }) => {
+      // 1. Filtro por categoría de rareza
+      if (currentRarityFilter !== 'all' && (emp.rarity || 'common') !== currentRarityFilter) {
+        return false;
+      }
+      // 2. Filtro por búsqueda por nombre
+      if (currentSearchQuery.trim() !== '') {
+        const name = (emp.name || '').toLowerCase();
+        const query = currentSearchQuery.toLowerCase().trim();
+        if (!name.includes(query)) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      body.innerHTML = '<p class="baul-empty">No se encontraron láminas duplicadas con estos filtros.</p>';
       return;
     }
 
     body.innerHTML = '';
-    data.forEach(({ quantity, employees: emp }) => {
-      if (!emp) return;
+    filtered.forEach(({ quantity, employees: emp }) => {
       const card = document.createElement('div');
       card.className = 'baul-card';
       card.innerHTML = renderSticker(emp, true);
@@ -496,8 +726,6 @@ async function renderDuplicatesTray(profile, collectedIds) {
       card.appendChild(pasteBtn);
       body.appendChild(card);
     });
-
-    updateBaulBadge(data.length);
   }
 
   function openModal() {

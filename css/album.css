@@ -685,6 +685,85 @@
   background: rgba(255,255,255,0.08);
 }
 
+/* Filtros e input del Baúl */
+.baul-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: #151f32;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.baul-search-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.baul-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+.baul-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background: #0f172a;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  font-family: var(--font-ui), sans-serif;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.baul-search-input:focus {
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+}
+
+.baul-rarity-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.baul-filter-btn {
+  padding: 6px 14px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-family: var(--font-ui), sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.baul-filter-btn:hover {
+  color: #f1f5f9;
+  background: #334155;
+  border-color: #64748b;
+}
+
+.baul-filter-btn.active {
+  color: #ffffff;
+  border-color: #8B5CF6;
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  box-shadow: 0 4px 10px rgba(139, 92, 246, 0.35);
+}
+
 .baul-modal__body {
   flex: 1;
   overflow-y: auto;
@@ -1017,6 +1096,196 @@ html, body {
     transform-origin: center center !important;
     left: 12% !important;
     top: 50% !important;
+  }
+}
+
+/* ==========================================================================
+   ── Preloader & Music Control (Premium Experience) ──
+   ========================================================================== */
+
+/* preloader Overlay */
+.preloader {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0d0e1b 0%, #1e1b4b 50%, #090a0f 100%);
+  z-index: 99999; /* Por encima de cualquier modal o toast */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-ui), sans-serif;
+  color: #f8fafc;
+  transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.7s;
+}
+
+.preloader--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preloader__content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 440px;
+  width: 90%;
+  padding: 36px 28px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.15);
+  transform: scale(1);
+  transition: transform 0.5s ease;
+}
+
+.preloader--hidden .preloader__content {
+  transform: scale(0.92);
+}
+
+.preloader__logo {
+  font-size: 3.8rem;
+  animation: preloaderFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.7));
+  user-select: none;
+}
+
+@keyframes preloaderFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.03); }
+}
+
+.preloader__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #ffffff 40%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  font-family: var(--font-ui);
+}
+
+.preloader__bar-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.preloader__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7C3AED 0%, #D946EF 100%);
+  box-shadow: 0 0 12px #a78bfa;
+  border-radius: 10px;
+  transition: width 0.3s cubic-bezier(0.1, 0.8, 0.25, 1);
+}
+
+.preloader__status {
+  font-size: 0.84rem;
+  color: #94a3b8;
+  margin: 0;
+  min-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.preloader__btn {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  color: #ffffff;
+  border: 2px solid #2F3B52;
+  padding: 14px 40px;
+  border-radius: 50px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.45), 4px 4px 0px #2F3B52;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: preloaderPulse 2.2s infinite;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preloader__btn:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 0 15px 35px rgba(139, 92, 246, 0.65), 7px 7px 0px #2F3B52;
+}
+
+.preloader__btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3), 2px 2px 0px #2F3B52;
+}
+
+@keyframes preloaderPulse {
+  0%, 100% { box-shadow: 0 10px 20px rgba(139, 92, 246, 0.45), 4px 4px 0px #2F3B52; }
+  50% { box-shadow: 0 14px 30px rgba(139, 92, 246, 0.65), 0 0 15px rgba(217, 70, 239, 0.45), 4px 4px 0px #2F3B52; }
+}
+
+/* Botón flotante del control de música */
+.music-toggle-btn {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid #334155;
+  color: #ffffff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  z-index: 999; /* Por debajo de modales pero arriba del viewport */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  user-select: none;
+}
+
+.music-toggle-btn:hover {
+  transform: scale(1.1) rotate(12deg);
+  border-color: #8B5CF6;
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.6), 0 6px 20px rgba(0, 0, 0, 0.5);
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.music-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.music-toggle-btn--muted {
+  border-color: #ef4444;
+  opacity: 0.8;
+}
+.music-toggle-btn--muted:hover {
+  border-color: #ef4444;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
+}
+
+/* Soporte mobile rotated portrait */
+@media (max-width: 768px) and (orientation: portrait) {
+  .music-toggle-btn {
+    top: 50% !important;
+    right: 16px !important;
+    left: auto !important;
+    transform: translate(0, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+  }
+  .music-toggle-btn:hover {
+    transform: translate(0, -50%) scale(1.1) rotate(102deg) !important;
   }
 }
 

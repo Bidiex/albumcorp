@@ -13,6 +13,19 @@
   <link rel="stylesheet" href="/css/exchange.css">
 </head>
 <body>
+  <!-- Pantalla de carga preloader -->
+  <div id="album-preloader" class="preloader">
+    <div class="preloader__content">
+      <div class="preloader__logo">🏆</div>
+      <h2 class="preloader__title">Cargando Álbum Mundial...</h2>
+      <div class="preloader__bar-container">
+        <div id="preloader-bar" class="preloader__bar"></div>
+      </div>
+      <p id="preloader-status" class="preloader__status">Iniciando pre-carga de imágenes y música...</p>
+      <button id="btn-preloader-open" class="preloader__btn" style="display: none;">¡Abrir Álbum! 📖</button>
+    </div>
+  </div>
+
   <div id="album-container">
     <div id="progress-container" class="album-progress">
       <span class="album-progress__icon">🏆</span>
