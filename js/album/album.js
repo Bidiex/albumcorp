@@ -255,26 +255,30 @@ function adjustBookScale() {
   const container = document.getElementById('album-container');
   if (!container) return;
 
-  // Dejar espacio lateral suficiente para que las flechas flotantes no queden apretadas
-  const availableWidth = container.clientWidth - 240;
+  // Detectar si estamos en modo landscape forzado (dispositivos móviles en portrait)
+  const isForcedLandscape = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
+
+  const screenW = isForcedLandscape ? window.innerHeight : container.clientWidth;
+  const screenH = isForcedLandscape ? window.innerWidth : window.innerHeight;
+
+  // En móviles las flechas se colocan debajo del álbum, por lo que no requieren espacio lateral.
+  // Usamos 32px de margen lateral seguro. En escritorio/wide usamos 240px.
+  const marginWidth = window.innerWidth < 768 ? 32 : 240;
+  const availableWidth = screenW - marginWidth;
 
   const progressEl = document.getElementById('progress-container');
   
-  // Altura del progreso bar con colchón de aire
-  const progressHeight = progressEl ? progressEl.offsetHeight + 32 : 60;
+  // Altura del progreso bar con colchón de aire (Red Band is in corners on mobile, only needs 32px spacing)
+  const progressHeight = window.innerWidth < 768 ? 32 : (progressEl ? progressEl.offsetHeight + 32 : 60);
   
-  // En escritorio los botones están en las esquinas y no restan espacio vertical.
-  // En móviles sí se apilan verticalmente bajo el libro.
-  let bottomSpacing = 32;
-  if (window.innerWidth < 768) {
-    const bottomActionsEl = document.getElementById('bottom-actions');
-    bottomSpacing = bottomActionsEl ? bottomActionsEl.offsetHeight + 16 : 80;
-  }
+  // En móviles las flechas van debajo del álbum y requieren espacio (68px para dar aire abajo).
+  // En escritorio las flechas están a los lados y los botones en las esquinas inferiores (32px).
+  const bottomSpacing = window.innerWidth < 768 ? 68 : 32;
   
   // Margen de seguridad vertical adicional
-  const paddingHeight = 40; 
+  const paddingHeight = window.innerWidth < 768 ? 24 : 40; 
   
-  const availableHeight = window.innerHeight - progressHeight - bottomSpacing - paddingHeight;
+  const availableHeight = screenH - progressHeight - bottomSpacing - paddingHeight;
 
   const bookWidth = 900;
   const bookHeight = 600;
