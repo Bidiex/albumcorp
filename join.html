@@ -402,14 +402,13 @@
                     btnRegister.textContent = 'Creando cuenta...';
 
                     // 1. Verificar whitelist ANTES de crear el usuario
-                    const { data: whitelistData, error: whitelistError } = await supabase
-                        .from('allowed_emails')
-                        .select('id')
-                        .eq('company_id', company.id)
-                        .ilike('email', email)
-                        .maybeSingle();
+                    const { data: isAllowed, error: whitelistError } = await supabase
+                        .rpc('fn_check_email_allowed', {
+                            p_email: email,
+                            p_company_id: company.id
+                        });
 
-                    if (whitelistError || !whitelistData) {
+                    if (whitelistError || !isAllowed) {
                         throw new Error('EMAIL_NOT_AUTHORIZED');
                     }
 
