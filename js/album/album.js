@@ -489,13 +489,30 @@ function renderPackButton(packsAvailable, profile, employees, collectedIds) {
 
   updateButton();
 
+  // Define sticker pasted callback globally so exchange.js can reuse it
+  window.__onStickerPasted = (emp) => {
+    collectedIds.add(emp.id);
+    const stickerEl = document.querySelector(`.sticker[data-employee-id="${emp.id}"]`);
+    if (stickerEl) {
+      const temp = document.createElement('div');
+      temp.innerHTML = renderSticker(emp, true);
+      const newEl = temp.firstElementChild;
+      newEl.classList.add('sticker--just-pasted');
+      newEl.addEventListener('animationend', () => newEl.classList.remove('sticker--just-pasted'), { once: true });
+      stickerEl.replaceWith(newEl);
+    }
+    renderProgressBar(collectedIds.size, employees.length);
+    window.__refreshDuplicates?.();
+  };
+
   btn.onclick = async () => {
     await openPack(profile, (stickers) => {
+      // onComplete: se dispara al cerrar el overlay
       renderProgressBar(collectedIds.size, employees.length);
       packs = Math.max(0, packs - 1);
       updateButton();
       window.__refreshDuplicates?.();
-    });
+    }, window.__onStickerPasted);
   };
 
   window.__refreshPackCount = (n) => { packs = n; updateButton(); };
@@ -722,6 +739,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
             renderProgressBar(collectedIds.size, count || collectedIds.size);
             loadBaul();
           } else {
+            console.error('Error al pegar laminita desde el baúl:', error);
             pasteBtn.disabled = false;
             pasteBtn.textContent = '📌 Pegar';
           }
@@ -777,13 +795,8 @@ function renderUserMenu(profile, collectedIds, employees) {
     <span class="user-avatar-btn__icon">☰</span>
   `;
 
-  toggleBtn.style.cssText = `
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 200;
-  `;
-  document.body.appendChild(toggleBtn);
+  const container = document.getElementById('album-container') || document.body;
+  container.appendChild(toggleBtn);
 
   // Carga inicial de datos del menú
   const avatar = document.getElementById('menu-avatar');
@@ -865,12 +878,14 @@ async function renderLegendaryCollection(profile) {
   const collectedCount = grantedIds.size;
   const totalCount = allLegendary.length;
 
+  const container = document.getElementById('album-container') || document.body;
+
   // Botón flotante
   const btn = document.createElement('button');
   btn.id = 'btn-legendary';
   btn.className = 'legendary-btn';
   btn.innerHTML = `⭐ <span id="legendary-count">${collectedCount}/${totalCount}</span>`;
-  document.body.appendChild(btn);
+  container.appendChild(btn);
 
   // Overlay
   const overlay = document.createElement('div');
@@ -887,7 +902,7 @@ async function renderLegendaryCollection(profile) {
       <div class="legendary-grid" id="legendary-grid"></div>
     </div>
   `;
-  document.body.appendChild(overlay);
+  container.appendChild(overlay);
 
   function renderGrid() {
     const grid = document.getElementById('legendary-grid');

@@ -5,7 +5,7 @@ import { supabase } from '../core/supabase.js';
 import { renderSticker } from './stickers.js';
 import { gsap } from 'gsap';
 
-export async function openPack(profile, onComplete) {
+export async function openPack(profile, onComplete, onStickerPasted) {
   const btn = document.getElementById('btn-open-pack');
   if (btn) btn.disabled = true;
 
@@ -31,13 +31,13 @@ export async function openPack(profile, onComplete) {
       return;
     }
 
-    showPackReveal(stickers, onComplete);
+    showPackReveal(stickers, onComplete, onStickerPasted);
   } finally {
     if (btn) btn.disabled = false;
   }
 }
 
-export function showPackReveal(stickers, onComplete) {
+export function showPackReveal(stickers, onComplete, onStickerPasted) {
   // ── Overlay ──
   const overlay = document.createElement('div');
   overlay.className = 'pack-overlay';
@@ -45,19 +45,34 @@ export function showPackReveal(stickers, onComplete) {
     <div class="pack-video-container">
       <video class="pack-video" src="/0518.mp4" autoplay playsinline></video>
     </div>
-    <div class="pack-stickers"></div>
+    <div class="pack-reveal-wrap">
+      <div class="pack-stickers"></div>
+      <div class="pack-controls">
+        <button class="pack-arrow pack-arrow--prev" aria-label="Anterior">‹</button>
+        <div class="pack-indicators"></div>
+        <button class="pack-arrow pack-arrow--next" aria-label="Siguiente">›</button>
+      </div>
+    </div>
     <button class="pack-close">Cerrar</button>
   `;
   document.body.appendChild(overlay);
 
   const videoContainer = overlay.querySelector('.pack-video-container');
   const video          = overlay.querySelector('.pack-video');
+  const revealWrap     = overlay.querySelector('.pack-reveal-wrap');
   const stickersWrap   = overlay.querySelector('.pack-stickers');
   const closeBtn       = overlay.querySelector('.pack-close');
+  const prevBtn        = overlay.querySelector('.pack-arrow--prev');
+  const nextBtn        = overlay.querySelector('.pack-arrow--next');
+  const indicators     = overlay.querySelector('.pack-indicators');
 
   // Ocultar elementos hasta que los necesitemos
-  gsap.set(stickersWrap, { display: 'none', opacity: 0 });
+  gsap.set(revealWrap,   { display: 'none', opacity: 0 });
+  gsap.set(overlay.querySelector('.pack-controls'), { opacity: 0 });
   gsap.set(closeBtn,     { opacity: 0, pointerEvents: 'none' });
+
+  let activeIndex = Math.floor(stickers.length / 2);
+  let entryAnimationDone = false;
 
   // Autoplay con fallback por seguridad
   video.play().catch(err => {
@@ -79,7 +94,6 @@ export function showPackReveal(stickers, onComplete) {
     if (skipped) return;
     skipped = true;
     
-    // Pausar y remover eventos para evitar disparos múltiples
     video.pause();
     
     gsap.to(videoContainer, {
@@ -89,8 +103,8 @@ export function showPackReveal(stickers, onComplete) {
       ease: 'power2.in',
       onComplete: () => {
         videoContainer.style.display = 'none';
-        gsap.set(stickersWrap, { display: 'flex' });
-        gsap.to(stickersWrap, { opacity: 1, duration: 0.35 });
+        gsap.set(revealWrap, { display: 'flex' });
+        gsap.to(revealWrap, { opacity: 1, duration: 0.35 });
         revealCards();
       }
     });
@@ -99,7 +113,82 @@ export function showPackReveal(stickers, onComplete) {
   video.addEventListener('ended', skipVideo);
   videoContainer.addEventListener('click', skipVideo);
 
+  function updateCarousel(immediate = false) {
+    const cards = stickersWrap.querySelectorAll('.pack-sticker-card');
+    cards.forEach((card, i) => {
+      const offset = i - activeIndex;
+      const absOffset = Math.abs(offset);
+      
+      let xPercent = -50;
+      let z = 0;
+      let ry = 0;
+      let sc = 1;
+      let op = 1;
+      let zi = 10 - absOffset;
+
+      if (offset !== 0) {
+        xPercent = -50 + (offset * 38); // fanned out spacing
+        z = absOffset * -80; // depth offset
+        ry = (45 - (absOffset - 1) * 10) * (offset < 0 ? 1 : -1); // rotation Y (more parallel)
+        sc = 1 - absOffset * 0.12; // scale (larger)
+        op = 1 - absOffset * 0.15; // opacity (more visible)
+      }
+      
+      gsap.to(card, {
+        xPercent: xPercent,
+        yPercent: -50,
+        x: 0,
+        z: z,
+        rotateY: ry,
+        scale: Math.max(0.1, sc),
+        opacity: Math.max(0, op),
+        zIndex: zi,
+        duration: immediate ? 0 : 0.6,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+
+      // Show/hide badges depending on focus and entry animation state
+      const rarity = card.querySelector('.pack-rarity-badge');
+      const badge = card.querySelector('.pack-badge');
+      const pasteBtn = card.querySelector('.pack-paste-btn');
+
+      if (offset === 0 && entryAnimationDone) {
+        if (rarity) gsap.to(rarity, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+        if (badge) gsap.to(badge, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+        if (pasteBtn) gsap.to(pasteBtn, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+      } else {
+        if (rarity) gsap.to(rarity, { opacity: 0, pointerEvents: 'none', duration: 0.3 });
+        if (badge) gsap.to(badge, { opacity: 0, pointerEvents: 'none', duration: 0.3 });
+        if (pasteBtn) gsap.to(pasteBtn, { opacity: 0, pointerEvents: 'none', duration: 0.3 });
+      }
+    });
+
+    // Indicadores
+    const inds = indicators.querySelectorAll('.pack-indicator');
+    inds.forEach((ind, i) => {
+      ind.classList.toggle('active', i === activeIndex);
+    });
+
+    if (prevBtn) prevBtn.disabled = activeIndex === 0;
+    if (nextBtn) nextBtn.disabled = activeIndex === cards.length - 1;
+  }
+
   function revealCards() {
+    // Generar indicadores
+    indicators.innerHTML = '';
+    stickers.forEach((_, i) => {
+      const ind = document.createElement('div');
+      ind.className = 'pack-indicator';
+      if (i === activeIndex) ind.classList.add('active');
+      ind.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activeIndex = i;
+        updateCarousel();
+      });
+      indicators.appendChild(ind);
+    });
+
     stickers.forEach((sticker, index) => {
       const emp = {
         ...sticker,
@@ -109,53 +198,37 @@ export function showPackReveal(stickers, onComplete) {
         photo_url: sticker.photo_url || null,
       };
 
-      // Wrapper externo — contiene todo: badge rareza + flip + badge estado + botón
       const card = document.createElement('div');
       card.className = 'pack-sticker-card';
 
-      // Badge rareza — ARRIBA del flip, fuera de él
+      // Rarity
       const rarityBadge = document.createElement('span');
       rarityBadge.className = `pack-rarity-badge pack-rarity-badge--${emp.rarity || 'common'}`;
       rarityBadge.textContent =
         emp.rarity === 'legendary' ? 'Legendaria' :
         emp.rarity === 'rare'      ? 'Mítica'     : 'Común';
 
-      // Wrapper relativo para contener el flip y el glow detrás
       const cardWrapper = document.createElement('div');
-      cardWrapper.style.position = 'relative';
-      cardWrapper.style.width = '180px';
-      cardWrapper.style.height = '240px';
+      cardWrapper.className = 'pack-card-wrapper';
 
-      // Elemento separado para el glow (detrás de la carta)
       const cardGlow = document.createElement('div');
       cardGlow.className = 'pack-card-glow';
-      cardGlow.style.position = 'absolute';
-      cardGlow.style.inset = '0';
-      cardGlow.style.borderRadius = '10px';
-      cardGlow.style.zIndex = '0';
-      cardGlow.style.pointerEvents = 'none';
 
-      // Contenedor del flip
       const cardInner = document.createElement('div');
       cardInner.className = 'pack-card-inner';
-      cardInner.style.zIndex = '1';
 
-      // Cara trasera — vacía, solo color/gradiente, sin emoji
       const cardBack = document.createElement('div');
       cardBack.className = 'pack-card-face pack-card-back';
 
-      // Cara delantera — solo la laminita, sin badges ni botones encima
       const cardFront = document.createElement('div');
       cardFront.className = 'pack-card-face pack-card-front';
       cardFront.innerHTML = renderSticker(emp, true);
 
       cardInner.appendChild(cardBack);
       cardInner.appendChild(cardFront);
-
       cardWrapper.appendChild(cardGlow);
       cardWrapper.appendChild(cardInner);
 
-      // Badge nuevo/repetido — DEBAJO del flip, fuera de él
       const statusBadge = document.createElement('span');
       statusBadge.className = `pack-badge ${sticker.is_new ? 'pack-badge--new' : 'pack-badge--repeat'}`;
       statusBadge.textContent = sticker.is_new ? '¡Nueva!' : 'Repetida';
@@ -164,7 +237,6 @@ export function showPackReveal(stickers, onComplete) {
       card.appendChild(cardWrapper);
       card.appendChild(statusBadge);
 
-      // Botón pegar — DEBAJO del badge, fuera del flip, solo si es nueva
       if (sticker.is_new) {
         const pasteBtn = document.createElement('button');
         pasteBtn.className = 'pack-paste-btn';
@@ -180,7 +252,9 @@ export function showPackReveal(stickers, onComplete) {
           if (!error) {
             pasteBtn.textContent = '✓ Pegada';
             pasteBtn.classList.add('pack-paste-btn--done');
+            onStickerPasted?.(emp);
           } else {
+            console.error('Error al pegar laminita desde el reveal:', error);
             pasteBtn.disabled = false;
             pasteBtn.textContent = '📌 Pegar en álbum';
           }
@@ -188,24 +262,57 @@ export function showPackReveal(stickers, onComplete) {
         card.appendChild(pasteBtn);
       }
 
-      stickersWrap.appendChild(card);
+      // Hacer que al hacer clic en una carta de los lados se vuelva activa
+      card.addEventListener('click', () => {
+        if (activeIndex !== index) {
+          activeIndex = index;
+          updateCarousel();
+        }
+      });
 
-      // Animación entrada + flip con GSAP
+      stickersWrap.appendChild(card);
+    });
+
+    // Inicializar posiciones
+    updateCarousel(true);
+
+    // Animación de entrada + flip secuencial con GSAP
+    const cards = stickersWrap.querySelectorAll('.pack-sticker-card');
+    cards.forEach((card, index) => {
+      const cardInner = card.querySelector('.pack-card-inner');
+      const cardGlow = card.querySelector('.pack-card-glow');
+      const emp = stickers[index];
+
+      const offset = index - activeIndex;
+      const absOffset = Math.abs(offset);
+      const targetScale = offset === 0 ? 1 : Math.max(0.1, 1 - absOffset * 0.12);
+      const targetOpacity = offset === 0 ? 1 : Math.max(0, 1 - absOffset * 0.15);
+
       gsap.fromTo(card,
-        { opacity: 0, y: 50, scale: 0.8 },
+        { opacity: 0, y: 80, scale: 0.5 },
         {
-          opacity: 1, y: 0, scale: 1,
-          duration: 0.45,
-          delay: index * 0.2,
-          ease: 'back.out(1.4)',
+          opacity: targetOpacity,
+          y: 0,
+          scale: targetScale,
+          duration: 0.5,
+          delay: index * 0.15,
+          ease: 'back.out(1.2)',
           onComplete: () => {
             gsap.to(cardInner, {
               rotateY: 180,
-              duration: 0.55,
+              duration: 0.6,
               delay: 0.1,
               ease: 'power2.inOut',
               onComplete: () => {
-                // Glow en cardGlow después del flip, usando box-shadow para evitar repaints del hijo
+                if (index === activeIndex) {
+                  const rarity = card.querySelector('.pack-rarity-badge');
+                  const badge = card.querySelector('.pack-badge');
+                  const pasteBtn = card.querySelector('.pack-paste-btn');
+                  if (rarity) gsap.to(rarity, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+                  if (badge) gsap.to(badge, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+                  if (pasteBtn) gsap.to(pasteBtn, { opacity: 1, pointerEvents: 'auto', duration: 0.3 });
+                }
+
                 if (emp.rarity === 'legendary') {
                   gsap.to(cardGlow, {
                     boxShadow: '0 0 16px #F59E0B, 0 0 32px #F59E0B88',
@@ -223,11 +330,17 @@ export function showPackReveal(stickers, onComplete) {
                     ease: 'sine.inOut'
                   });
                 }
-                // Mostrar botón cerrar tras último flip
+
                 if (index === stickers.length - 1) {
+                  entryAnimationDone = true;
+                  // Mostrar controles de carrusel
+                  gsap.to(overlay.querySelector('.pack-controls'), {
+                    opacity: 1,
+                    duration: 0.35
+                  });
+                  // Mostrar botón cerrar
                   gsap.to(closeBtn, {
                     opacity: 1,
-                    delay: 0.5,
                     duration: 0.3,
                     onStart: () => { closeBtn.style.pointerEvents = 'auto'; }
                   });
@@ -240,8 +353,42 @@ export function showPackReveal(stickers, onComplete) {
     });
   }
 
-  // ── Cerrar ──
+  // Navegación con flechas
+  prevBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (activeIndex > 0) {
+      activeIndex--;
+      updateCarousel();
+    }
+  });
+
+  nextBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (activeIndex < stickers.length - 1) {
+      activeIndex++;
+      updateCarousel();
+    }
+  });
+
+  // Teclado
+  const handleKeydown = (e) => {
+    if (e.key === 'ArrowLeft') {
+      if (activeIndex > 0) {
+        activeIndex--;
+        updateCarousel();
+      }
+    } else if (e.key === 'ArrowRight') {
+      if (activeIndex < stickers.length - 1) {
+        activeIndex++;
+        updateCarousel();
+      }
+    }
+  };
+  window.addEventListener('keydown', handleKeydown);
+
+  // Cerrar
   closeBtn.addEventListener('click', () => {
+    window.removeEventListener('keydown', handleKeydown);
     gsap.to(overlay, {
       opacity: 0,
       duration: 0.3,

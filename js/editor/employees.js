@@ -640,15 +640,19 @@ async function loadPackConfig() {
   $('input-max-acc').value = data.max_accumulated;
 
   const probs = data.probabilities || {};
-  $('slider-common').value = Math.round((probs.common || 0.7) * 100);
-  $('slider-rare').value = Math.round((probs.rare || 0.25) * 100);
-  $('slider-legendary').value = Math.round((probs.legendary || 0.05) * 100);
+  $('slider-common').value = Math.round((probs.common || 0.8) * 100);
+  $('slider-rare').value = Math.round((probs.rare || 0.2) * 100);
   updateProbLabels();
 }
 
 function setupPackConfig() {
-  ['slider-common', 'slider-rare', 'slider-legendary'].forEach(id => {
-    $(id).addEventListener('input', updateProbLabels);
+  $('slider-common').addEventListener('input', () => {
+    $('slider-rare').value = 100 - parseInt($('slider-common').value);
+    updateProbLabels();
+  });
+  $('slider-rare').addEventListener('input', () => {
+    $('slider-common').value = 100 - parseInt($('slider-rare').value);
+    updateProbLabels();
   });
 
   $('btn-save-packs').addEventListener('click', savePackConfig);
@@ -657,12 +661,10 @@ function setupPackConfig() {
 function updateProbLabels() {
   const c = parseInt($('slider-common').value);
   const r = parseInt($('slider-rare').value);
-  const l = parseInt($('slider-legendary').value);
-  const total = c + r + l;
+  const total = c + r;
 
   $('val-common').textContent = `${c}%`;
   $('val-rare').textContent = `${r}%`;
-  $('val-legendary').textContent = `${l}%`;
 
   const el = $('prob-total');
   el.textContent = `Total: ${total}% ${total === 100 ? '✓' : '⚠ Debe sumar 100%'}`;
@@ -672,9 +674,8 @@ function updateProbLabels() {
 async function savePackConfig() {
   const c = parseInt($('slider-common').value) / 100;
   const r = parseInt($('slider-rare').value) / 100;
-  const l = parseInt($('slider-legendary').value) / 100;
 
-  if (Math.round((c + r + l) * 100) !== 100) {
+  if (Math.round((c + r) * 100) !== 100) {
     return showFeedback('packs-feedback', '⚠ Las probabilidades deben sumar exactamente 100%.', 'error');
   }
 
@@ -683,7 +684,7 @@ async function savePackConfig() {
       pack_size: parseInt($('input-pack-size').value),
       frequency_days: parseInt($('input-freq-days').value),
       max_accumulated: parseInt($('input-max-acc').value),
-      probabilities: { common: c, rare: r, legendary: l }
+      probabilities: { common: c, rare: r, legendary: 0 }
     })
     .eq('company_id', companyId);
 

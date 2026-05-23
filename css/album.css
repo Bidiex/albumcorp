@@ -307,22 +307,100 @@
 }
 
 /* Grid de cards */
-.pack-stickers {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+/* Nuevo contenedor del reveal */
+.pack-reveal-wrap {
+  display: none;
+  opacity: 0;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  max-width: 860px;
-  padding: 0 24px;
+  width: 100%;
 }
 
-/* Card individual con flip */
+.pack-stickers {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  height: 350px;
+  perspective: 1200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+}
+
+/* Card individual posicionada absolutamente para el Coverflow */
 .pack-sticker-card {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 210px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  width: 180px;
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+
+/* Controles de la baraja */
+.pack-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 4px;
+  z-index: 10;
+}
+
+.pack-arrow {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.pack-arrow:hover:not(:disabled) {
+  background: #22C55E;
+  border-color: #22C55E;
+  transform: scale(1.08);
+}
+
+.pack-arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pack-indicators {
+  display: flex;
+  gap: 10px;
+}
+
+.pack-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.pack-indicator:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.pack-indicator.active {
+  background: #22C55E;
+  transform: scale(1.25);
 }
 
 /* Badge de rareza */
@@ -333,6 +411,9 @@
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .pack-rarity-badge--legendary {
@@ -350,13 +431,30 @@
   color: #fff;
 }
 
+/* Contenedor wrapper para el sticker */
+.pack-card-wrapper {
+  position: relative;
+  width: 210px;
+  height: 280px;
+}
+
+/* Efecto glow para la carta */
+.pack-card-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  z-index: 0;
+  pointer-events: none;
+}
+
 /* Contenedor con perspectiva para el flip */
 .pack-card-inner {
-  width: 180px;
-  height: 240px;
+  width: 210px;
+  height: 280px;
   position: relative;
   transform-style: preserve-3d;
   perspective: 800px;
+  z-index: 1;
 }
 
 /* Caras de la card */
@@ -391,6 +489,9 @@
   font-weight: 700;
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .pack-badge--new    { background: #22C55E; color: #fff; }
@@ -409,6 +510,8 @@
   font-weight: 700;
   font-size: 0.75rem;
   cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
   transition: opacity 0.2s, background 0.2s, transform 0.15s;
   box-shadow: 0 3px 8px rgba(34,197,94,0.35);
 }
@@ -416,6 +519,18 @@
 .pack-paste-btn:hover { transform: translateY(-1px); }
 .pack-paste-btn--done { background: #475569; box-shadow: none; }
 .pack-paste-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+/* Micro-animación al pegar una laminita en el álbum desde el reveal */
+@keyframes sticker-paste-in {
+  0%   { transform: scale(0.55); opacity: 0; filter: drop-shadow(0 0 0px #22C55E); }
+  60%  { transform: scale(1.15); filter: drop-shadow(0 0 14px #22C55E); }
+  80%  { transform: scale(0.97); }
+  100% { transform: scale(1);    opacity: 1; filter: drop-shadow(0 0 0px transparent); }
+}
+
+.sticker--just-pasted {
+  animation: sticker-paste-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
 
 /* Botón cerrar */
 .pack-close {
@@ -1089,6 +1204,41 @@ html, body {
     height: 100vw !important;
     transform: translate(-50%, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
+    gap: 12px !important;
+  }
+
+  /* Ajustes responsivos para el reveal en móviles portrait rotados */
+  .pack-reveal-wrap {
+    position: relative !important;
+    transform: scale(0.82) !important;
+    transform-origin: center center !important;
+  }
+
+  .pack-arrow--prev {
+    position: absolute !important;
+    left: 20px !important;
+    top: 40% !important;
+    transform: translateY(-50%) !important;
+    z-index: 20 !important;
+  }
+
+  .pack-arrow--next {
+    position: absolute !important;
+    right: 20px !important;
+    top: 40% !important;
+    transform: translateY(-50%) !important;
+    z-index: 20 !important;
+  }
+
+  .pack-controls {
+    justify-content: center !important;
+    margin-top: 4px !important;
+  }
+
+  .pack-close {
+    padding: 8px 30px !important;
+    font-size: 0.9rem !important;
+    margin-top: -20px !important;
   }
 
   /* Rotar toast de sobres */
@@ -1097,6 +1247,70 @@ html, body {
     transform-origin: center center !important;
     left: 12% !important;
     top: 50% !important;
+  }
+
+  /* Ajustar botón avatar del usuario y menú */
+  .user-avatar-btn {
+    position: absolute !important;
+    top: 12px !important;
+    left: 12px !important;
+    bottom: auto !important;
+    right: auto !important;
+    z-index: 200 !important;
+  }
+
+  .user-menu-backdrop {
+    position: absolute !important;
+    z-index: 800 !important;
+  }
+
+  .user-menu {
+    position: absolute !important;
+    z-index: 900 !important;
+    padding: 16px !important;
+    gap: 12px !important;
+    max-height: 85% !important;
+    overflow-y: auto !important;
+  }
+
+  /* Ajustar progreso del álbum para estar al centro pegado al botón de música */
+  .album-progress {
+    position: absolute !important;
+    left: calc(50% - 60px) !important;
+    top: 16px !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    z-index: 100 !important;
+  }
+
+  /* Ajustar botón legendario y modal */
+  .legendary-btn {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 200 !important;
+  }
+
+  .legendary-overlay {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 100vh !important;
+    height: 100vw !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+    z-index: 1000 !important;
+  }
+
+  .legendary-modal {
+    width: min(860px, 92vh) !important;
+    max-height: 82vw !important;
+    padding: 16px !important;
+    gap: 12px !important;
   }
 }
 
@@ -1454,8 +1668,11 @@ html, body {
   background: transparent;
 }
 
-/* Botón hamburger del usuario */
 .user-avatar-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 200;
   background: rgba(30, 41, 59, 0.85);
   border: 2px solid rgba(255,255,255,0.15);
   color: #fff;

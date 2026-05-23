@@ -46,42 +46,42 @@
       <button id="btn-open-pack">🎁</button>
       <span id="pack-count-badge" class="pack-badge-counter">0</span>
     </div>
+
+    <div id="user-menu-backdrop" class="user-menu-backdrop"></div>
+    <div id="user-menu" class="user-menu">
+      <div class="user-menu__header">
+        <div class="user-menu__avatar" id="menu-avatar">?</div>
+        <div class="user-menu__info">
+          <span class="user-menu__name" id="menu-name">...</span>
+          <span class="user-menu__role">Coleccionista</span>
+        </div>
+        <button class="user-menu__close" id="btn-close-user-menu">✕</button>
+      </div>
+      <div class="user-menu__stats">
+        <div class="user-menu__stat">
+          <span class="user-menu__stat-value" id="menu-sticker-count">0</span>
+          <span class="user-menu__stat-label">laminitas</span>
+        </div>
+        <div class="user-menu__stat">
+          <span class="user-menu__stat-value" id="menu-completion">0%</span>
+          <span class="user-menu__stat-label">completado</span>
+        </div>
+      </div>
+      <div class="user-menu__actions">
+        <a href="/mi-laminita.html" class="user-menu__action-btn">
+          ✨ Crear mi laminita
+        </a>
+        <button class="user-menu__action-btn" id="btn-logout-menu">
+          🚪 Cerrar sesión
+        </button>
+        <button class="user-menu__action-btn user-menu__action-btn--danger" 
+          id="btn-delete-account">
+          Eliminar cuenta
+        </button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="/js/album/album.js"></script>
-
-  <div id="user-menu-backdrop" class="user-menu-backdrop"></div>
-  <div id="user-menu" class="user-menu">
-    <div class="user-menu__header">
-      <div class="user-menu__avatar" id="menu-avatar">?</div>
-      <div class="user-menu__info">
-        <span class="user-menu__name" id="menu-name">...</span>
-        <span class="user-menu__role">Coleccionista</span>
-      </div>
-      <button class="user-menu__close" id="btn-close-user-menu">✕</button>
-    </div>
-    <div class="user-menu__stats">
-      <div class="user-menu__stat">
-        <span class="user-menu__stat-value" id="menu-sticker-count">0</span>
-        <span class="user-menu__stat-label">laminitas</span>
-      </div>
-      <div class="user-menu__stat">
-        <span class="user-menu__stat-value" id="menu-completion">0%</span>
-        <span class="user-menu__stat-label">completado</span>
-      </div>
-    </div>
-    <div class="user-menu__actions">
-      <a href="/mi-laminita.html" class="user-menu__action-btn">
-        ✨ Crear mi laminita
-      </a>
-      <button class="user-menu__action-btn" id="btn-logout-menu">
-        🚪 Cerrar sesión
-      </button>
-      <button class="user-menu__action-btn user-menu__action-btn--danger" 
-        id="btn-delete-account">
-        Eliminar cuenta
-      </button>
-    </div>
-  </div>
 </body>
 </html>

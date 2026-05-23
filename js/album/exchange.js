@@ -201,6 +201,8 @@ async function acceptOffer(offerId) {
   if (received.length > 0) {
     showPackReveal(received, (stickers) => {
       window.__refreshDuplicates?.();
+    }, (emp) => {
+      window.__onStickerPasted?.(emp);
     });
   } else {
     showExchangeToast('¡Intercambio realizado!');
