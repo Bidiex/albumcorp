@@ -1503,4 +1503,133 @@ html, body {
   margin-left: 2px;
 }
 
+/* ── Colección Legendaria ── */
+.legendary-btn {
+  position: fixed;
+  bottom: calc(var(--space-xl) + 70px);
+  right: var(--space-xl);
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #fff;
+  border: 2px solid #92400E;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-full);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #92400E;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  z-index: 100;
+}
+
+.legendary-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #92400E;
+}
+
+.legendary-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.legendary-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.legendary-modal {
+  background: #1a1a0a;
+  border: 2px solid #F59E0B;
+  border-radius: 20px;
+  padding: 32px;
+  width: min(860px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.legendary-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.legendary-modal__title {
+  font-family: var(--font-ui);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #F59E0B;
+  margin: 0;
+}
+
+.legendary-modal__close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.legendary-modal__close:hover { color: #f1f5f9; }
+
+.legendary-modal__subtitle {
+  color: #D97706;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.legendary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.legendary-card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.legendary-card--collected {
+  filter: drop-shadow(0 0 8px #F59E0B);
+}
+
+.legendary-card--locked {
+  aspect-ratio: 3/4;
+  background: rgba(245, 158, 11, 0.05);
+  border: 2px dashed rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.legendary-card__lock {
+  font-size: 2rem;
+  opacity: 0.4;
+}
+
+.legendary-card__lock-name {
+  color: rgba(245, 158, 11, 0.4);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
 

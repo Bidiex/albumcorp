@@ -825,3 +825,26 @@ input[type="range"].legendary-slider::-webkit-slider-thumb {
 .email-row__delete:hover {
   opacity: 1;
 }
+
+.email-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.email-row__name {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.email-row__name--registered {
+  color: #16A34A;
+}
+
+.email-row__name--pending {
+  color: var(--text-muted);
+  font-style: italic;
+}

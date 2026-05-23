@@ -75,6 +75,8 @@ async function init() {
   setupLayoutPublish();
   setupAccesos();
   loadAccesos();
+  setupGrants();
+  loadGrantSection();
 }
 
 // ══════════════════════════════════════════════
@@ -295,7 +297,7 @@ function renderEmployees(list) {
 }
 
 function rarityLabel(r) {
-  return { common: '⬜ Común', rare: '💜 Raro', legendary: '⭐ Legendario' }[r] || r;
+  return { common: '⬜ Común', rare: '💜 Mítica', legendary: '⭐ Legendario' }[r] || r;
 }
 
 // ── Filtrado ──
@@ -404,10 +406,8 @@ function resetPhotoPreview() {
 
 async function saveEmployee() {
   const name = $('input-emp-name').value.trim();
-  const role = $('input-emp-role').value.trim();
   const sectionId = $('input-emp-section').value || null;
   const rarity = $('input-emp-rarity').value;
-  const seniorityYears = parseInt($('input-emp-seniority').value, 10) || 0;
 
   if (!name) {
     return showFeedback('emp-feedback', 'El nombre es obligatorio.', 'error');
@@ -467,7 +467,7 @@ async function saveEmployee() {
     }
   }
 
-  const payload = { company_id: companyId, name, role, section_id: sectionId, rarity, seniority_years: seniorityYears };
+  const payload = { company_id: companyId, name, section_id: sectionId, rarity };
   if (photoUrl !== null) payload.photo_url = photoUrl;
   if (placeholderUrl !== null) payload.placeholder_url = placeholderUrl;
 
@@ -506,10 +506,8 @@ function editEmployee(id) {
   editingEmployeeId = id;
 
   $('input-emp-name').value = emp.name;
-  $('input-emp-role').value = emp.role || '';
   $('input-emp-section').value = emp.section_id || '';
   $('input-emp-rarity').value = emp.rarity;
-  $('input-emp-seniority').value = emp.seniority_years || 0;
 
   if (emp.photo_url) {
     showPhotoPreview(emp.photo_url, 'photo-preview-container');
@@ -533,10 +531,8 @@ function editEmployee(id) {
 function cancelEmployeeEdit() {
   editingEmployeeId = null;
   $('input-emp-name').value = '';
-  $('input-emp-role').value = '';
   $('input-emp-section').value = '';
   $('input-emp-rarity').value = 'common';
-  $('input-emp-seniority').value = 0;
   resetPhotoPreview();
   $('btn-save-employee').textContent = '💾 Guardar empleado';
   $('btn-cancel-employee').style.display = 'none';
@@ -798,24 +794,28 @@ async function loadAccesos() {
   list.innerHTML = '<p class="empty-state">Cargando...</p>';
 
   const { data, error } = await supabase
-    .from('allowed_emails')
-    .select('id, email, created_at')
-    .eq('company_id', companyId)
-    .order('created_at', { ascending: false });
+    .rpc('fn_get_allowed_emails_with_profiles', {
+      p_company_id: companyId
+    });
 
   if (error || !data || data.length === 0) {
-    list.innerHTML = 
+    list.innerHTML =
       '<p class="empty-state">No hay correos autorizados aún.</p>';
     return;
   }
 
   list.innerHTML = '';
-  data.forEach(({ id, email }) => {
+  data.forEach(({ id, email, display_name, is_registered }) => {
     const row = document.createElement('div');
     row.className = 'email-row';
     row.innerHTML = `
-      <span class="email-row__text">${email}</span>
-      <button class="btn btn-ghost btn-sm email-row__delete" 
+      <div class="email-row__info">
+        <span class="email-row__text">${email}</span>
+        <span class="email-row__name ${is_registered ? 'email-row__name--registered' : 'email-row__name--pending'}">
+          ${is_registered ? display_name : 'Sin registrar'}
+        </span>
+      </div>
+      <button class="btn btn-ghost btn-sm email-row__delete"
         data-id="${id}">✕</button>
     `;
     row.querySelector('.email-row__delete')
@@ -858,6 +858,137 @@ async function deleteEmail(id) {
     .eq('id', id);
 
   if (!error) loadAccesos();
+}
+
+async function loadGrantSection() {
+  await loadUsersForGrant();
+  await loadLegendariesForGrant();
+  await loadGrantsList();
+}
+
+async function loadUsersForGrant() {
+  const select = document.getElementById('select-grant-user');
+  if (!select) return;
+
+  const { data } = await supabase
+    .from('user_profiles')
+    .select('id, display_name')
+    .eq('company_id', companyId)
+    .eq('role', 'employee')
+    .order('display_name');
+
+  if (!data || data.length === 0) {
+    select.innerHTML = '<option value="">Sin usuarios registrados</option>';
+    return;
+  }
+
+  select.innerHTML = '<option value="">— Seleccionar usuario —</option>';
+  data.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u.id;
+    opt.textContent = u.display_name;
+    select.appendChild(opt);
+  });
+}
+
+async function loadLegendariesForGrant() {
+  const select = document.getElementById('select-grant-legendary');
+  if (!select) return;
+
+  const { data } = await supabase
+    .from('employees')
+    .select('id, name')
+    .eq('company_id', companyId)
+    .eq('rarity', 'legendary')
+    .eq('is_active', true)
+    .order('name');
+
+  if (!data || data.length === 0) {
+    select.innerHTML = '<option value="">Sin laminitas legendarias</option>';
+    return;
+  }
+
+  select.innerHTML = '<option value="">— Seleccionar laminita —</option>';
+  data.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = e.name;
+    select.appendChild(opt);
+  });
+}
+
+async function loadGrantsList() {
+  const list = document.getElementById('grants-list');
+  if (!list) return;
+  list.innerHTML = '<p class="empty-state">Cargando...</p>';
+
+  const { data, error } = await supabase
+    .rpc('fn_get_grants_list', { p_company_id: companyId });
+
+  if (error || !data || data.length === 0) {
+    list.innerHTML = '<p class="empty-state">No hay legendarias otorgadas aún.</p>';
+    return;
+  }
+
+  list.innerHTML = '';
+  data.forEach(grant => {
+    const row = document.createElement('div');
+    row.className = 'email-row';
+    row.innerHTML = `
+      <div class="email-row__info">
+        <span class="email-row__text">
+          ${grant.employee_name || '?'} → 
+          ${grant.user_display_name || '?'}
+        </span>
+        <span class="email-row__name email-row__name--pending">
+          ${new Date(grant.granted_at).toLocaleDateString('es-CO')}
+        </span>
+      </div>
+      <button class="btn btn-ghost btn-sm email-row__delete" 
+        data-id="${grant.id}">✕</button>
+    `;
+    row.querySelector('.email-row__delete')
+      .addEventListener('click', () => revokeGrant(grant.id,
+        grant.employee_id, grant.user_id));
+    list.appendChild(row);
+  });
+}
+
+async function grantLegendary() {
+  const userId = document.getElementById('select-grant-user')?.value;
+  const empId = document.getElementById('select-grant-legendary')?.value;
+
+  if (!userId || !empId) {
+    showFeedback('grant-feedback', 'Selecciona un usuario y una laminita.', 'error');
+    return;
+  }
+
+  const { error } = await supabase.rpc('fn_grant_legendary', {
+    p_employee_id: empId,
+    p_user_id: userId
+  });
+
+  if (error) {
+    showFeedback('grant-feedback', error.message, 'error');
+    return;
+  }
+
+  showFeedback('grant-feedback', '✓ Laminita otorgada correctamente.', 'success');
+  loadGrantsList();
+}
+
+async function revokeGrant(grantId, empId, userId) {
+  if (!empId || !userId) return;
+  const { error } = await supabase.rpc('fn_revoke_legendary', {
+    p_employee_id: empId,
+    p_user_id: userId
+  });
+  if (!error) loadGrantsList();
+}
+
+function setupGrants() {
+  document.getElementById('btn-grant-legendary')
+    ?.addEventListener('click', grantLegendary);
 }
 
 // ── Boot ──

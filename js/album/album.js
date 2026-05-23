@@ -31,6 +31,7 @@ async function initAlbum() {
   // 3. UI adicional
   renderProgressBar(collectedIds.size, employees.length);
   renderPackButton(packsAvailable, profile, employees, collectedIds);
+  renderLegendaryCollection(profile);
   renderDuplicatesTray(profile, collectedIds);
   renderExchangeModal(profile, employees, collectedIds);
 
@@ -200,6 +201,7 @@ async function fetchAlbumData(profile) {
       .select('*')
       .eq('company_id', profile.company_id)
       .eq('is_active', true)
+      .neq('rarity', 'legendary')
       .order('page_number', { ascending: true })
       .order('position', { ascending: true }),
     supabase.from('user_collection')
@@ -597,7 +599,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
       <div class="baul-rarity-filters">
         <button class="baul-filter-btn active" data-rarity="all">Todos</button>
         <button class="baul-filter-btn" data-rarity="common">Comunes</button>
-        <button class="baul-filter-btn" data-rarity="rare">Raros</button>
+        <button class="baul-filter-btn" data-rarity="rare">Míticas</button>
         <button class="baul-filter-btn" data-rarity="legendary">Legendarios</button>
       </div>
     </div>
@@ -837,6 +839,110 @@ function renderUserMenu(profile, collectedIds, employees) {
       await logoutUser();
     }
   });
+}
+
+async function renderLegendaryCollection(profile) {
+  const userId = (await supabase.auth.getUser()).data.user.id;
+
+  // Obtener todas las legendarias de la empresa
+  const { data: allLegendary } = await supabase
+    .from('employees')
+    .select('id, name, photo_url, rarity')
+    .eq('company_id', profile.company_id)
+    .eq('is_active', true)
+    .eq('rarity', 'legendary');
+
+  if (!allLegendary || allLegendary.length === 0) return;
+
+  // Obtener las que tiene el usuario
+  const { data: grants } = await supabase
+    .from('legendary_grants')
+    .select('employee_id')
+    .eq('user_id', userId)
+    .eq('company_id', profile.company_id);
+
+  const grantedIds = new Set((grants || []).map(g => g.employee_id));
+  const collectedCount = grantedIds.size;
+  const totalCount = allLegendary.length;
+
+  // Botón flotante
+  const btn = document.createElement('button');
+  btn.id = 'btn-legendary';
+  btn.className = 'legendary-btn';
+  btn.innerHTML = `⭐ <span id="legendary-count">${collectedCount}/${totalCount}</span>`;
+  document.body.appendChild(btn);
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'legendary-overlay';
+  overlay.innerHTML = `
+    <div class="legendary-modal">
+      <div class="legendary-modal__header">
+        <h2 class="legendary-modal__title">⭐ Laminitas Legendarias</h2>
+        <button class="legendary-modal__close" id="btn-close-legendary">✕</button>
+      </div>
+      <p class="legendary-modal__subtitle">
+        ${collectedCount} de ${totalCount} conseguidas
+      </p>
+      <div class="legendary-grid" id="legendary-grid"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  function renderGrid() {
+    const grid = document.getElementById('legendary-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    allLegendary.forEach(emp => {
+      const hasIt = grantedIds.has(emp.id);
+      const card = document.createElement('div');
+      card.className = `legendary-card ${hasIt ? 'legendary-card--collected' : 'legendary-card--locked'}`;
+      card.innerHTML = hasIt
+        ? renderSticker(emp, true)
+        : `<div class="legendary-card__locked">
+             <span class="legendary-card__lock">🔒</span>
+             <span class="legendary-card__lock-name">???</span>
+           </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  renderGrid();
+
+  function openOverlay() {
+    overlay.classList.add('visible');
+  }
+  function closeOverlay() {
+    overlay.classList.remove('visible');
+  }
+
+  btn.addEventListener('click', openOverlay);
+  document.getElementById('btn-close-legendary')
+    ?.addEventListener('click', closeOverlay);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeOverlay();
+  });
+
+  window.__refreshLegendary = async () => {
+    const { data: freshGrants } = await supabase
+      .from('legendary_grants')
+      .select('employee_id')
+      .eq('user_id', userId)
+      .eq('company_id', profile.company_id);
+
+    grantedIds.clear();
+    (freshGrants || []).forEach(g => grantedIds.add(g.employee_id));
+
+    const newCount = grantedIds.size;
+    const countEl = document.getElementById('legendary-count');
+    if (countEl) countEl.textContent = `${newCount}/${totalCount}`;
+
+    const subtitle = overlay.querySelector('.legendary-modal__subtitle');
+    if (subtitle) {
+      subtitle.textContent = `${newCount} de ${totalCount} conseguidas`;
+    }
+    renderGrid();
+  };
 }
 
 // Iniciar

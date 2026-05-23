@@ -300,7 +300,7 @@ async function renderCreateForm(body) {
         <div class="baul-rarity-filters">
           <button class="baul-filter-btn active" data-rarity="all">Todos</button>
           <button class="baul-filter-btn" data-rarity="common">Comunes</button>
-          <button class="baul-filter-btn" data-rarity="rare">Raros</button>
+          <button class="baul-filter-btn" data-rarity="rare">Míticas</button>
           <button class="baul-filter-btn" data-rarity="legendary">Legendarios</button>
         </div>
       </div>

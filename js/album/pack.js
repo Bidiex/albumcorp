@@ -118,7 +118,7 @@ export function showPackReveal(stickers, onComplete) {
       rarityBadge.className = `pack-rarity-badge pack-rarity-badge--${emp.rarity || 'common'}`;
       rarityBadge.textContent =
         emp.rarity === 'legendary' ? 'Legendaria' :
-        emp.rarity === 'rare'      ? 'Rara'       : 'Común';
+        emp.rarity === 'rare'      ? 'Mítica'     : 'Común';
 
       // Wrapper relativo para contener el flip y el glow detrás
       const cardWrapper = document.createElement('div');

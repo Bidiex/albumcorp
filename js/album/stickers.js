@@ -63,7 +63,7 @@ window.__showStickerDetails = function(imageSrc, code, seniority, rarity) {
 
   let rarityBadge = '';
   if (rarity === 'legendary') rarityBadge = '<span class="badge badge-legendary">⭐ Legendario</span>';
-  else if (rarity === 'rare') rarityBadge = '<span class="badge badge-rare">💜 Raro</span>';
+  else if (rarity === 'rare') rarityBadge = '<span class="badge badge-rare">💜 Mítica</span>';
   else rarityBadge = '<span class="badge badge-common">⬜ Común</span>';
 
   const modal = document.createElement('div');
