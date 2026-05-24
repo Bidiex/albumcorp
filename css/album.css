@@ -1193,6 +1193,9 @@ html, body {
   #sticker-detail-modal > div {
     transform: rotate(90deg) scale(1) !important;
     transform-origin: center center !important;
+    max-width: 210px !important;
+    padding: 16px !important;
+    gap: 12px !important;
   }
 
   /* Rotar reveal de sobres (pack overlay) */
@@ -1249,14 +1252,18 @@ html, body {
     top: 50% !important;
   }
 
-  /* Ajustar botón avatar del usuario y menú */
-  .user-avatar-btn {
+  /* Ajustar barra superior (avatar + ranking) y menú */
+  #album-top-bar {
     position: absolute !important;
     top: 12px !important;
     left: 12px !important;
     bottom: auto !important;
     right: auto !important;
     z-index: 200 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
 
   .user-menu-backdrop {
@@ -1276,7 +1283,7 @@ html, body {
   /* Ajustar progreso del álbum para estar al centro pegado al botón de música */
   .album-progress {
     position: absolute !important;
-    left: calc(50% - 60px) !important;
+    left: calc(50% - 180px) !important;
     top: 16px !important;
     right: auto !important;
     bottom: auto !important;
@@ -1296,13 +1303,13 @@ html, body {
   }
 
   .legendary-overlay {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    width: 100vh !important;
-    height: 100vw !important;
-    transform: translate(-50%, -50%) rotate(90deg) !important;
-    transform-origin: center center !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    top: auto !important;
+    left: auto !important;
     z-index: 1000 !important;
   }
 
@@ -1311,6 +1318,27 @@ html, body {
     max-height: 82vw !important;
     padding: 16px !important;
     gap: 12px !important;
+  }
+
+  /* Ajustar tamaño del video de apertura en mobile */
+  .pack-video-container {
+    max-width: 90vh !important;
+    max-height: 80vw !important;
+  }
+
+  .pack-video {
+    max-height: 75vw !important;
+  }
+
+  /* Rotar preloader de carga */
+  .preloader {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 100vh !important;
+    height: 100vw !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
   }
 }
 
@@ -1493,7 +1521,7 @@ html, body {
 /* Soporte mobile rotated portrait */
 @media (max-width: 768px) and (orientation: portrait) {
   .music-toggle-btn {
-    top: 50% !important;
+    top: calc(50% + 50px) !important;
     right: 16px !important;
     left: auto !important;
     transform: translate(0, -50%) rotate(90deg) !important;
@@ -1669,10 +1697,6 @@ html, body {
 }
 
 .user-avatar-btn {
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 200;
   background: rgba(30, 41, 59, 0.85);
   border: 2px solid rgba(255,255,255,0.15);
   color: #fff;
@@ -1847,6 +1871,183 @@ html, body {
   font-family: var(--font-ui);
   font-weight: 700;
   font-size: 0.85rem;
+}
+
+/* ── Ranking ── */
+.ranking-btn {
+  background: rgba(30, 41, 59, 0.85);
+  border: 2px solid rgba(255,255,255,0.15);
+  color: #F59E0B;
+  height: 40px;
+  min-width: 52px;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+}
+
+.ranking-btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.ranking-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.ranking-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.ranking-modal {
+  background: #1e293b;
+  border: 2px solid #334155;
+  border-radius: 20px;
+  width: min(480px, 92vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+}
+
+.ranking-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+}
+
+.ranking-modal__title {
+  font-family: var(--font-ui);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.ranking-modal__close {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.ranking-modal__close:hover { color: #f1f5f9; }
+
+.ranking-search-wrap {
+  padding: 16px 24px 0;
+  flex-shrink: 0;
+}
+
+.ranking-search {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  color: #f1f5f9;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.ranking-search:focus { border-color: #475569; }
+.ranking-search::placeholder { color: #475569; }
+
+.ranking-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ranking-empty {
+  text-align: center;
+  color: #475569;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  margin-top: 24px;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid transparent;
+  transition: background 0.15s;
+}
+
+.ranking-row:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.ranking-row--me {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.ranking-row__pos {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #94a3b8;
+  min-width: 36px;
+  text-align: center;
+}
+
+.ranking-row__name {
+  flex: 1;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ranking-row__you {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #F59E0B;
+}
+
+.ranking-row__count {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
 }
 
 

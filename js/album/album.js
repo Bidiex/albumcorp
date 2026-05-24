@@ -41,6 +41,7 @@ async function initAlbum() {
   }
 
   renderUserMenu(profile, collectedIds, employees);
+  await renderRanking(profile, collectedIds);
 
   // ── Pre-carga de Recursos (Preloader) ──
   const preloader = document.getElementById('album-preloader');
@@ -53,6 +54,8 @@ async function initAlbum() {
   if (currentTheme?.cover_image_url) imageUrls.add(currentTheme.cover_image_url);
   if (currentTheme?.inner_cover_image_url) imageUrls.add(currentTheme.inner_cover_image_url);
   if (currentTheme?.logo_url) imageUrls.add(currentTheme.logo_url);
+  if (currentTheme?.back_inner_image_url) imageUrls.add(currentTheme.back_inner_image_url);
+  if (currentTheme?.back_cover_image_url) imageUrls.add(currentTheme.back_cover_image_url);
   
   if (currentTheme?.page_backgrounds) {
     Object.values(currentTheme.page_backgrounds).forEach(url => {
@@ -62,6 +65,7 @@ async function initAlbum() {
   
   employees.forEach(emp => {
     if (emp.photo_url) imageUrls.add(emp.photo_url);
+    if (emp.placeholder_url) imageUrls.add(emp.placeholder_url);
   });
 
   const assetsToLoad = [...imageUrls];
@@ -86,12 +90,31 @@ async function initAlbum() {
     }
   }
 
-  // Cargar imágenes en paralelo
+  // Cargar e intentar decodificar imágenes en paralelo para evitar renderizado parcial en pantalla
   const imagePromises = assetsToLoad.map(url => {
     return new Promise(resolve => {
       const img = new Image();
-      img.onload = () => { updateProgress(); resolve(); };
-      img.onerror = () => { updateProgress(); resolve(); };
+      img.onload = () => {
+        if (typeof img.decode === 'function') {
+          img.decode()
+            .then(() => {
+              updateProgress();
+              resolve();
+            })
+            .catch(err => {
+              console.warn(`Error al decodificar la imagen: ${url}`, err);
+              updateProgress();
+              resolve();
+            });
+        } else {
+          updateProgress();
+          resolve();
+        }
+      };
+      img.onerror = () => {
+        updateProgress();
+        resolve();
+      };
       img.src = url;
     });
   });
@@ -146,6 +169,8 @@ async function initAlbum() {
   // Completar carga
   if (progressBar) progressBar.style.width = '100%';
   if (progressStatus) progressStatus.textContent = '¡Álbum cargado con éxito!';
+  const preloaderTitle = document.getElementById('preloader-title');
+  if (preloaderTitle) preloaderTitle.textContent = 'Álbum cargado';
 
   if (openBtn && preloader) {
     if (progressBar) progressBar.parentElement.style.display = 'none';
@@ -303,9 +328,11 @@ function renderAlbumHTML(pages) {
 
   // Páginas de contenido
   pages.forEach(page => {
+    // Las primeras 8 páginas tendrán carga 'eager' para evitar que se vean incompletas al abrir el álbum
+    const isEager = Number(page.number) <= 8;
     const stickerHtml = page.slots.map(slot => {
       if (!slot) return '<div class="sticker-placeholder"></div>';
-      return renderSticker(slot.data, slot.isCollected);
+      return renderSticker(slot.data, slot.isCollected, isEager);
     }).join('');
 
     const pageBgUrl = (currentTheme?.page_backgrounds || {})[page.number];
@@ -796,7 +823,21 @@ function renderUserMenu(profile, collectedIds, employees) {
   `;
 
   const container = document.getElementById('album-container') || document.body;
-  container.appendChild(toggleBtn);
+
+  // Wrapper para agrupar botón usuario + botón ranking
+  const topBar = document.createElement('div');
+  topBar.id = 'album-top-bar';
+  topBar.style.cssText = `
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  `;
+  topBar.appendChild(toggleBtn);
+  container.appendChild(topBar);
 
   // Carga inicial de datos del menú
   const avatar = document.getElementById('menu-avatar');
@@ -958,6 +999,125 @@ async function renderLegendaryCollection(profile) {
     }
     renderGrid();
   };
+}
+
+async function renderRanking(profile, collectedIds) {
+  const userId = (await supabase.auth.getUser()).data.user.id;
+
+  // Botón de posición
+  const rankBtn = document.createElement('button');
+  rankBtn.id = 'btn-ranking';
+  rankBtn.className = 'ranking-btn';
+  rankBtn.textContent = '…';
+
+  const topBar = document.getElementById('album-top-bar');
+  if (topBar) topBar.appendChild(rankBtn);
+
+  // Modal
+  const modal = document.createElement('div');
+  modal.className = 'ranking-modal-overlay';
+  modal.innerHTML = `
+    <div class="ranking-modal">
+      <div class="ranking-modal__header">
+        <h2 class="ranking-modal__title">🏆 Ranking</h2>
+        <button class="ranking-modal__close" id="btn-close-ranking">✕</button>
+      </div>
+      <div class="ranking-search-wrap">
+        <input type="text" id="ranking-search" 
+          class="ranking-search" 
+          placeholder="Buscar colaborador...">
+      </div>
+      <div class="ranking-list" id="ranking-list">
+        <p class="ranking-empty">Cargando...</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  let rankingData = [];
+
+  async function loadRanking() {
+    const { data, error } = await supabase
+      .rpc('fn_get_ranking', { p_company_id: profile.company_id });
+
+    if (error || !data) return;
+    rankingData = data;
+
+    // Actualizar botón con posición del usuario actual
+    const myEntry = data.find(r => r.user_id === userId);
+    if (myEntry) {
+      rankBtn.textContent = `#${myEntry.position}`;
+    }
+
+    renderList(data);
+  }
+
+  function renderList(data) {
+    const list = document.getElementById('ranking-list');
+    if (!list) return;
+
+    if (!data || data.length === 0) {
+      list.innerHTML = '<p class="ranking-empty">Sin datos aún.</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+    data.forEach(entry => {
+      const isMe = entry.user_id === userId;
+      const row = document.createElement('div');
+      row.className = `ranking-row ${isMe ? 'ranking-row--me' : ''}`;
+      row.dataset.name = entry.display_name.toLowerCase();
+
+      const medal =
+        entry.position === 1n ? '🥇' :
+        entry.position === 2n ? '🥈' :
+        entry.position === 3n ? '🥉' : '';
+
+      row.innerHTML = `
+        <span class="ranking-row__pos">${medal || '#' + entry.position}</span>
+        <span class="ranking-row__name">
+          ${entry.display_name}
+          ${isMe ? '<span class="ranking-row__you">(tú)</span>' : ''}
+        </span>
+        <span class="ranking-row__count">${entry.stickers_count} 🏷️</span>
+      `;
+      list.appendChild(row);
+    });
+
+    // Scroll al usuario actual
+    const myRow = list.querySelector('.ranking-row--me');
+    if (myRow) {
+      setTimeout(() => myRow.scrollIntoView({ block: 'center', behavior: 'smooth' }), 100);
+    }
+  }
+
+  // Buscador
+  document.getElementById('ranking-search')?.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    const filtered = q
+      ? rankingData.filter(r => r.display_name.toLowerCase().includes(q))
+      : rankingData;
+    renderList(filtered);
+  });
+
+  // Abrir / cerrar
+  rankBtn.addEventListener('click', () => {
+    modal.classList.add('visible');
+    loadRanking();
+  });
+
+  document.getElementById('btn-close-ranking')
+    ?.addEventListener('click', () => modal.classList.remove('visible'));
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('visible');
+  });
+
+  // Carga inicial del botón
+  loadRanking();
+
+  // Exponer refresh
+  window.__refreshRanking = loadRanking;
 }
 
 // Iniciar

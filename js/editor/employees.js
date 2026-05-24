@@ -98,6 +98,7 @@ function activateSection(name) {
   // Activar la correcta
   $(`section-${name}`)?.classList.add('active');
   document.querySelector(`[data-section="${name}"]`)?.classList.add('active');
+  if (name === 'ranking') loadEditorRanking();
 }
 
 // ══════════════════════════════════════════════
@@ -990,6 +991,41 @@ async function revokeGrant(grantId, empId, userId) {
 function setupGrants() {
   document.getElementById('btn-grant-legendary')
     ?.addEventListener('click', grantLegendary);
+}
+
+async function loadEditorRanking() {
+  const list = document.getElementById('editor-ranking-list');
+  if (!list) return;
+  list.innerHTML = '<p class="empty-state">Cargando...</p>';
+
+  const { data, error } = await supabase
+    .rpc('fn_get_ranking', { p_company_id: companyId });
+
+  if (error || !data || data.length === 0) {
+    list.innerHTML = '<p class="empty-state">Sin datos aún.</p>';
+    return;
+  }
+
+  list.innerHTML = '';
+  data.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'email-row';
+
+    const medal =
+      entry.position == 1 ? '🥇' :
+      entry.position == 2 ? '🥈' :
+      entry.position == 3 ? '🥉' : `#${entry.position}`;
+
+    row.innerHTML = `
+      <div class="email-row__info">
+        <span class="email-row__text">${medal} ${entry.display_name}</span>
+        <span class="email-row__name email-row__name--registered">
+          ${entry.stickers_count} laminitas
+        </span>
+      </div>
+    `;
+    list.appendChild(row);
+  });
 }
 
 // ── Boot ──

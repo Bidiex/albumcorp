@@ -6,12 +6,15 @@
  * Renderiza el HTML de un sticker basado en el estado de colección
  * @param {Object} employee - Datos del empleado
  * @param {Boolean} isCollected - Si el usuario ya tiene este cromo
+ * @param {Boolean} isEager - Si la imagen debe cargar inmediatamente
  * @returns {String} HTML string
  */
-export function renderSticker(employee, isCollected) {
+export function renderSticker(employee, isCollected, isEager = false) {
+  const loadingAttr = isEager ? 'loading="eager"' : 'loading="lazy"';
+
   if (!isCollected) {
     const placeholderSrc = employee.placeholder_url || '';
-    const imgHtml = placeholderSrc ? `<img src="${placeholderSrc}" alt="?" class="sticker__image" loading="lazy">` : '';
+    const imgHtml = placeholderSrc ? `<img src="${placeholderSrc}" alt="?" class="sticker__image" ${loadingAttr}>` : '';
     const safeRarity = employee.rarity || 'common';
     
     return `
@@ -42,7 +45,7 @@ export function renderSticker(employee, isCollected) {
          onpointerdown="event.stopPropagation();"
          onclick="event.stopPropagation(); window.__showStickerDetails('${imageSrc}', '${safeCode}', ${seniority}, '${safeRarity}')">
       <div class="sticker__image-container">
-        <img src="${imageSrc}" alt="Sticker" class="sticker__image" loading="lazy">
+        <img src="${imageSrc}" alt="Sticker" class="sticker__image" ${loadingAttr}>
       </div>
     </div>
   `;
@@ -61,11 +64,6 @@ window.__showStickerDetails = function(imageSrc, code, seniority, rarity) {
     opacity: 0; transition: opacity 0.2s ease; cursor: pointer;
   `;
 
-  let rarityBadge = '';
-  if (rarity === 'legendary') rarityBadge = '<span class="badge badge-legendary">⭐ Legendario</span>';
-  else if (rarity === 'rare') rarityBadge = '<span class="badge badge-rare">💜 Mítica</span>';
-  else rarityBadge = '<span class="badge badge-common">⬜ Común</span>';
-
   const modal = document.createElement('div');
   modal.style.cssText = `
     background: #1e293b; border-radius: 16px; padding: 24px; max-width: 320px; width: 90%;
@@ -75,12 +73,7 @@ window.__showStickerDetails = function(imageSrc, code, seniority, rarity) {
   modal.onclick = (e) => e.stopPropagation();
 
   modal.innerHTML = `
-    <img src="${imageSrc}" style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px 12px 5px 5px; background: #eee;">
-    <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
-      <span class="badge" style="background: #334155; color: #f8fafc; border: 1px solid #475569;">#${code}</span>
-      <span class="badge" style="background: #334155; color: #f8fafc; border: 1px solid #475569;">${seniority} ${seniority === 1 ? 'año' : 'años'}</span>
-      ${rarityBadge}
-    </div>
+    <img src="${imageSrc}" style="width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; background: #eee;">
     <button class="btn btn-ghost" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="document.getElementById('sticker-detail-modal').remove()">Cerrar</button>
   `;
 
