@@ -75,6 +75,7 @@ async function init() {
   setupLayoutPublish();
   setupAccesos();
   loadAccesos();
+  loadAccessRequests();
   setupGrants();
   loadGrantSection();
   setupMilestones();
@@ -831,6 +832,9 @@ function setupAccesos() {
       if (tab.dataset.tab === 'legendarias') {
         loadGrantSection();
       }
+      if (tab.dataset.tab === 'solicitudes') {
+        loadAccessRequests();
+      }
       if (tab.dataset.tab === 'ranking-list') {
         loadEditorRanking();
       }
@@ -1346,6 +1350,90 @@ function confirmAction(message, onConfirm) {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
   });
+}
+
+async function loadAccessRequests() {
+  const list = document.getElementById('solicitudes-list');
+  if (!list) return;
+  list.innerHTML = '<p class="empty-state">Cargando...</p>';
+
+  const { data, error } = await supabase
+    .rpc('fn_get_access_requests', { p_company_id: companyId });
+
+  if (error || !data || data.length === 0) {
+    list.innerHTML = '<p class="empty-state">No hay solicitudes pendientes.</p>';
+    updateSolicitudesBadge(0);
+    return;
+  }
+
+  const pending = data.filter(r => r.status === 'pending');
+  updateSolicitudesBadge(pending.length);
+
+  list.innerHTML = '';
+  data.forEach(req => {
+    const isPending = req.status === 'pending';
+    const row = document.createElement('div');
+    row.className = 'email-row';
+    row.innerHTML = `
+      <div class="email-row__info">
+        <span class="email-row__text">${req.email}</span>
+        <span class="email-row__name ${isPending ? 'email-row__name--pending' : 'email-row__name--registered'}">
+          ${isPending ? '⏳ Pendiente' : req.status === 'approved' ? '✓ Aprobada' : '✗ Rechazada'}
+          · ${new Date(req.requested_at).toLocaleDateString('es-CO')}
+        </span>
+      </div>
+      ${isPending ? `
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button class="btn btn-primary btn-sm req-approve" 
+            data-id="${req.id}" data-email="${req.email}"
+            style="padding:4px 12px; font-size:0.8rem;">
+            ✓
+          </button>
+          <button class="btn btn-ghost btn-sm req-reject"
+            data-id="${req.id}"
+            style="padding:4px 12px; font-size:0.8rem; color:var(--danger);">
+            ✗
+          </button>
+        </div>
+      ` : ''}
+    `;
+
+    if (isPending) {
+      row.querySelector('.req-approve').addEventListener('click', async (e) => {
+        const id = e.currentTarget.dataset.id;
+        const email = e.currentTarget.dataset.email;
+        const { error } = await supabase.rpc('fn_approve_access_request', {
+          p_request_id: id
+        });
+        if (!error) {
+          showFeedback('solicitudes-feedback', `✓ ${email} aprobado y agregado a la lista.`, 'success');
+          loadAccessRequests();
+          loadAccesos();
+        }
+      });
+
+      row.querySelector('.req-reject').addEventListener('click', async (e) => {
+        const id = e.currentTarget.dataset.id;
+        const { error } = await supabase.rpc('fn_reject_access_request', {
+          p_request_id: id
+        });
+        if (!error) loadAccessRequests();
+      });
+    }
+
+    list.appendChild(row);
+  });
+}
+
+function updateSolicitudesBadge(count) {
+  const badge = document.getElementById('solicitudes-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 // ── Boot ──

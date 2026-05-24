@@ -302,6 +302,29 @@
                     </div>
                     <button type="submit" id="btn-register" class="btn btn-primary">Crear cuenta</button>
                     <div id="register-error" class="join-error"></div>
+                    <div id="request-access-wrap" style="display:none; margin-top:12px; text-align:center;">
+                      <button id="btn-request-access" style="
+                        background: none;
+                        border: 1.5px solid var(--primary);
+                        color: var(--primary);
+                        padding: 8px 20px;
+                        border-radius: var(--radius-full);
+                        font-family: var(--font-body);
+                        font-weight: 600;
+                        font-size: 0.875rem;
+                        cursor: pointer;
+                        transition: background 0.15s, color 0.15s;
+                      ">
+                        📩 Solicitar acceso con este correo
+                      </button>
+                      <p id="request-access-feedback" style="
+                        display:none;
+                        margin-top:8px;
+                        font-size:0.8rem;
+                        color: var(--primary);
+                        font-family: var(--font-body);
+                      "></p>
+                    </div>
                 </form>
             `;
 
@@ -398,6 +421,7 @@
 
                 try {
                     registerError.classList.remove('visible');
+                    document.getElementById('request-access-wrap').style.display = 'none';
                     btnRegister.disabled = true;
                     btnRegister.textContent = 'Creando cuenta...';
 
@@ -450,7 +474,29 @@
                     
                     // Manejo de errores específicos detallados en los requisitos
                     if (err.message && err.message.includes('EMAIL_NOT_AUTHORIZED')) {
-                        errorMsg = 'Tu correo no está en la lista de acceso de esta empresa. Contacta a tu administrador.';
+                        errorMsg = 'Tu correo no está en la lista de acceso de esta empresa.';
+                        // Mostrar botón de solicitud
+                        const wrap = document.getElementById('request-access-wrap');
+                        if (wrap) wrap.style.display = 'block';
+                        const btn = document.getElementById('btn-request-access');
+                        if (btn) {
+                            btn.onclick = async () => {
+                                btn.disabled = true;
+                                btn.textContent = 'Enviando...';
+                                const { error: reqErr } = await supabase.rpc('fn_request_access', {
+                                    p_company_id: company.id,
+                                    p_email: email
+                                });
+                                const fb = document.getElementById('request-access-feedback');
+                                if (fb) {
+                                    fb.style.display = 'block';
+                                    fb.textContent = reqErr
+                                        ? 'Error al enviar la solicitud. Intenta de nuevo.'
+                                        : '✓ Solicitud enviada. El administrador revisará tu acceso.';
+                                }
+                                btn.style.display = 'none';
+                            };
+                        }
                     } else if (err.message && err.message.includes('USER_ALREADY_REGISTERED')) {
                         errorMsg = 'Ya tienes una cuenta. Usa la pestaña Iniciar sesión.';
                         registerError.classList.add('join-error--success');

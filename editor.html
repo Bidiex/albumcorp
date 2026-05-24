@@ -451,6 +451,11 @@
           <button class="accesos-tab accesos-tab--active" data-tab="emails">
             📧 Correos autorizados
           </button>
+          <button class="accesos-tab" data-tab="solicitudes">
+            📩 Solicitudes
+            <span id="solicitudes-badge" class="accesos-tab-badge" 
+              style="display:none">0</span>
+          </button>
           <button class="accesos-tab" data-tab="legendarias">
             ⭐ Laminitas Legendarias
           </button>
@@ -477,6 +482,20 @@
               <p class="empty-state">Cargando...</p>
             </div>
             <div id="accesos-feedback" class="feedback mt-md"></div>
+          </div>
+        </div>
+
+        <!-- Panel: Solicitudes -->
+        <div class="accesos-panel" id="panel-solicitudes">
+          <div style="max-width: 540px;">
+            <p style="font-size:0.875rem; color:var(--text-secondary);
+              margin-bottom: var(--space-lg);">
+              Usuarios que han solicitado acceso al álbum.
+            </p>
+            <div id="solicitudes-list">
+              <p class="empty-state">Cargando...</p>
+            </div>
+            <div id="solicitudes-feedback" class="feedback mt-md"></div>
           </div>
         </div>
 
