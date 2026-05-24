@@ -59,7 +59,7 @@ export async function loginUser(email, password) {
  */
 export async function logoutUser() {
   await supabase.auth.signOut();
-  window.location.href = '/index.html';
+  window.location.href = '/';
 }
 
 /**
@@ -93,18 +93,18 @@ export async function getCurrentProfile() {
 export async function guardRoute(allowedRoles = []) {
   const session = await getSession();
   if (!session) {
-    window.location.href = '/index.html';
+    window.location.href = '/';
     return null;
   }
 
   const profile = await getCurrentProfile();
   if (!profile) {
-    window.location.href = '/index.html';
+    window.location.href = '/';
     return null;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(profile.role)) {
-    window.location.href = '/album.html';
+    window.location.href = '/album';
     return null;
   }
 

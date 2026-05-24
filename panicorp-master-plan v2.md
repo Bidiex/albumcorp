@@ -332,3 +332,13 @@ Todas las tablas tienen RLS habilitado. Helpers `fn_my_company_id()` y `fn_my_ro
 | `duplicate` | Sticker que el usuario ya tenía (va a user_duplicates) |
 | `layout` | El mapa fijo de qué empleado va en qué página y posición |
 | `rarity` | Rareza del sticker: common, rare, legendary |
+
+---
+
+## Regla Global para este Proyecto
+
+Nunca usar extensiones .html en window.location.href, window.location.replace, window.location.assign ni en atributos href de enlaces internos.
+
+**Rutas correctas**: `/`, `/album`, `/editor`, `/join`, `/exchange`, `/mi-laminita`  
+**Rutas incorrectas**: `/album.html`, `/editor.html`, etc.
+

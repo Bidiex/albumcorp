@@ -36,7 +36,7 @@ async function initAlbum() {
   window.addEventListener('resize', () => requestAnimationFrame(adjustBookScale));
 
   // 3. Inicializar hitos (en paralelo, no bloquea el álbum)
-  initMilestones(profile, employees.length).catch(err =>
+  initMilestones(profile, employees.length, collectedIds).catch(err =>
     console.warn('No se pudieron cargar los hitos:', err)
   );
 

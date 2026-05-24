@@ -29,7 +29,7 @@ let _modalShowing = false;
  * @param {Object} profile  — Perfil del usuario (con company_id)
  * @param {number} total    — Total de empleados activos del álbum
  */
-export async function initMilestones(profile, total) {
+export async function initMilestones(profile, total, collectedIds) {
   _totalEmployees = total;
 
   const [configRes, userRes] = await Promise.all([
@@ -40,6 +40,11 @@ export async function initMilestones(profile, total) {
   _milestonesConfig = configRes.data || [];
   _userMilestones   = userRes.data   || [];
   _initialized      = true;
+
+  // Verificar hitos pendientes al cargar (para usuarios con laminitas previas)
+  if (collectedIds && collectedIds.size > 0 && _milestonesConfig.length > 0) {
+    await checkMilestones(collectedIds);
+  }
 }
 
 /**
@@ -252,7 +257,8 @@ function buildBattlePassTrack(pct, nextMilestone) {
     const isUnlocked = _userMilestones.some(
       um => um.milestone_id === m.id && um.unlocked_at !== null
     );
-    const isNext = nextMilestone && m.id === nextMilestone.id;
+    const distanceToNext = nextMilestone ? nextMilestone.threshold - pct : Infinity;
+    const isNext = nextMilestone && m.id === nextMilestone.id && distanceToNext <= 15;
     const isLocked = !isUnlocked && !isNext;
 
     // Línea de riel entre hitos

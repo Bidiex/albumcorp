@@ -2515,3 +2515,39 @@ html, body {
     transform: translateY(380px) rotateZ(720deg) rotateX(180deg);
   }
 }
+
+/* ── Scrollbars personalizadas premium para el Modal de Ranking ── */
+.ranking-list::-webkit-scrollbar,
+.battlepass-container::-webkit-scrollbar,
+.ranking-tab-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ranking-list::-webkit-scrollbar-track,
+.battlepass-container::-webkit-scrollbar-track,
+.ranking-tab-panel::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 4px;
+}
+
+.ranking-list::-webkit-scrollbar-thumb,
+.battlepass-container::-webkit-scrollbar-thumb,
+.ranking-tab-panel::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.ranking-list::-webkit-scrollbar-thumb:hover,
+.battlepass-container::-webkit-scrollbar-thumb:hover,
+.ranking-tab-panel::-webkit-scrollbar-thumb:hover {
+  background: #F59E0B; /* Acento dorado/amarillo premium del Ranking */
+}
+
+/* Compatibilidad con Firefox */
+.ranking-list,
+.battlepass-container,
+.ranking-tab-panel {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0f172a;
+}
+

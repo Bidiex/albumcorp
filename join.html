@@ -233,7 +233,7 @@
                         .single();
 
                     if (profile && profile.role === 'employee' && profile.company_id === company.id) {
-                        window.location.href = '/album.html';
+                        window.location.href = '/album';
                         return;
                     }
                 }
@@ -367,7 +367,7 @@
                             }
                             throw new Error('Error al completar el registro. Intenta de nuevo.');
                         }
-                        window.location.href = '/album.html';
+                        window.location.href = '/album';
                         return;
                     }
 
@@ -377,7 +377,7 @@
                     }
 
                     // 3. Redirigir al álbum si todo coincide
-                    window.location.href = '/album.html';
+                    window.location.href = '/album';
 
                 } catch (err) {
                     console.error('Error al iniciar sesión:', err);
@@ -442,7 +442,7 @@
                         }, { onConflict: 'user_id' });
 
                     // 4. Redirigir al álbum
-                    window.location.href = '/album.html';
+                    window.location.href = '/album';
 
                 } catch (err) {
                     console.error('Error en registro:', err);

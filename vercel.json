@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/album", "destination": "/album.html" },
+    { "source": "/editor", "destination": "/editor.html" },
+    { "source": "/join", "destination": "/join.html" },
+    { "source": "/exchange", "destination": "/exchange.html" },
+    { "source": "/", "destination": "/index.html" }
+  ]
+}

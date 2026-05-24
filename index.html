@@ -68,7 +68,7 @@
             if (session) {
                 const profile = await getCurrentProfile();
                 if (profile) {
-                    window.location.href = profile.role === 'editor' ? '/editor.html' : '/album.html';
+                    window.location.href = profile.role === 'editor' ? '/editor' : '/album';
                 }
             }
         });
@@ -101,7 +101,7 @@
 
                 await loginUser(email, password);
                 const profile = await getCurrentProfile();
-                window.location.href = profile.role === 'editor' ? '/editor.html' : '/album.html';
+                window.location.href = profile.role === 'editor' ? '/editor' : '/album';
             } catch (error) {
                 loginError.textContent = error.message;
                 loginError.classList.add('visible');
@@ -126,7 +126,7 @@
 
                 // Usamos el nombre del editor y el de la empresa
                 await registerEditor(name, company, email, password);
-                window.location.href = '/editor.html';
+                window.location.href = '/editor';
             } catch (error) {
                 registerError.textContent = error.message;
                 registerError.classList.add('visible');
