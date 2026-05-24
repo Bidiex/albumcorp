@@ -721,8 +721,8 @@ async function loadTheme() {
 
   if (!data) return;
 
-  // Inicializar theme-editor.js con los datos del tema actual
-  initThemeEditor(companyId, data);
+  // Inicializar theme-editor.js con los datos del tema actual y las secciones cargadas
+  initThemeEditor(companyId, data, sections);
 
   // Cargar fondos de página interiores
   if (data.page_backgrounds) {
@@ -1351,6 +1351,9 @@ function confirmAction(message, onConfirm) {
     if (e.target === modal) modal.remove();
   });
 }
+
+// Expose confirmAction globally so theme-editor.js can use it for row deletions
+window.__confirmAction = confirmAction;
 
 async function loadAccessRequests() {
   const list = document.getElementById('solicitudes-list');

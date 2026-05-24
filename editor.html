@@ -428,11 +428,24 @@
               </div>
               <button class="btn btn-ghost btn-sm" id="btn-add-page-bg" style="align-self: flex-start;">➕ Agregar fondo de página</button>
             </div>
+
+            <!-- Páginas Personalizadas -->
+            <div class="form-group" style="margin-top: 10px;">
+              <label class="form-label">📄 Páginas Personalizadas</label>
+              <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: var(--space-sm); line-height:1.5;">
+                Imágenes a pantalla completa que se insertan <strong>antes o después</strong> de una sección, desplazando el resto del álbum. Los cambios solo son visibles al <strong>republicar el layout</strong>.
+              </p>
+              <div id="custom-pages-container" style="display:flex; flex-direction:column; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                <!-- Se inyectan filas dinámicamente -->
+              </div>
+              <button class="btn btn-ghost btn-sm" id="btn-add-custom-page" style="align-self: flex-start;">➕ Agregar página personalizada</button>
+            </div>
           </div>
         </div>
         <div id="theme-feedback" class="feedback mt-lg" style="max-width:540px;"></div>
         <button class="btn btn-primary btn-lg mt-md" id="btn-save-theme">💾 Guardar tema</button>
       </section>
+
 
       <!-- ────── SECCIÓN: ACCESOS ────── -->
       <section class="editor-section" id="section-accesos">

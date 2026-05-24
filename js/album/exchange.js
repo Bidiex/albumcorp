@@ -273,13 +273,15 @@ async function cancelOffer(offerId, cardEl) {
 async function renderCreateForm(body) {
   const userId = (await supabase.auth.getUser()).data.user.id;
 
-  const { data: myDups } = await supabase
+  const { data: myDupsRaw } = await supabase
     .from('user_duplicates')
     .select('employee_id, quantity, employees(id, name, role, photo_url, rarity)')
     .eq('user_id', userId)
     .gt('quantity', 0);
 
-  if (!myDups || myDups.length === 0) {
+  const myDups = (myDupsRaw || []).filter(d => d.employees && d.employees.rarity !== 'legendary');
+
+  if (myDups.length === 0) {
     body.innerHTML = '<p class="offer-empty">Necesitas stickers repetidos para intercambiar.</p>';
     return;
   }
@@ -303,7 +305,6 @@ async function renderCreateForm(body) {
           <button class="baul-filter-btn active" data-rarity="all">Todos</button>
           <button class="baul-filter-btn" data-rarity="common">Comunes</button>
           <button class="baul-filter-btn" data-rarity="rare">Míticas</button>
-          <button class="baul-filter-btn" data-rarity="legendary">Legendarios</button>
         </div>
       </div>
       

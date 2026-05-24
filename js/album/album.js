@@ -23,9 +23,25 @@ async function initAlbum() {
 
   currentTheme = await loadTheme(profile.company_id);
 
+  // Obtener el slug de la empresa para el redireccionamiento del logout
+  const { data: companyData } = await supabase
+    .from('companies')
+    .select('slug')
+    .eq('id', profile.company_id)
+    .single();
+  const companySlug = companyData?.slug || '';
+
   const { employees, collectedIds, packsAvailable, sections } = await fetchAlbumData(profile);
 
-  const pages = buildPages(employees, collectedIds, sections);
+  // Filtrar collectedIds para tener únicamente las laminitas regular (comunes y míticas)
+  const regularCollectedIds = new Set();
+  employees.forEach(emp => {
+    if (collectedIds.has(emp.id)) {
+      regularCollectedIds.add(emp.id);
+    }
+  });
+
+  const pages = buildPages(employees, regularCollectedIds, sections);
 
   // 1. Montar DOM primero
   renderAlbumHTML(pages);
@@ -36,24 +52,24 @@ async function initAlbum() {
   window.addEventListener('resize', () => requestAnimationFrame(adjustBookScale));
 
   // 3. Inicializar hitos (en paralelo, no bloquea el álbum)
-  initMilestones(profile, employees.length, collectedIds).catch(err =>
+  initMilestones(profile, employees.length, regularCollectedIds).catch(err =>
     console.warn('No se pudieron cargar los hitos:', err)
   );
 
   // 4. UI adicional
-  renderProgressBar(collectedIds.size, employees.length);
-  renderPackButton(packsAvailable, profile, employees, collectedIds);
+  renderProgressBar(regularCollectedIds.size, employees.length);
+  renderPackButton(packsAvailable, profile, employees, regularCollectedIds);
   renderLegendaryCollection(profile);
-  renderDuplicatesTray(profile, collectedIds);
-  renderExchangeModal(profile, employees, collectedIds);
+  renderDuplicatesTray(profile, regularCollectedIds);
+  renderExchangeModal(profile, employees, regularCollectedIds);
 
   // DEV ONLY — remover antes de producción
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     renderDevTools(profile);
   }
 
-  renderUserMenu(profile, collectedIds, employees);
-  await renderRanking(profile, collectedIds);
+  renderUserMenu(profile, regularCollectedIds, employees, companySlug);
+  await renderRanking(profile, regularCollectedIds);
 
   // ── Pre-carga de Recursos (Preloader) ──
   const preloader = document.getElementById('album-preloader');
@@ -72,6 +88,13 @@ async function initAlbum() {
   if (currentTheme?.page_backgrounds) {
     Object.values(currentTheme.page_backgrounds).forEach(url => {
       if (url) imageUrls.add(url);
+    });
+  }
+
+  // Precargar imágenes de páginas personalizadas
+  if (currentTheme?.custom_pages) {
+    currentTheme.custom_pages.forEach(cp => {
+      if (cp.image_url) imageUrls.add(cp.image_url);
     });
   }
   
@@ -338,35 +361,67 @@ function renderAlbumHTML(pages) {
     </div>
   `);
 
-  // Páginas de contenido
-  pages.forEach(page => {
-    // Las primeras 8 páginas tendrán carga 'eager' para evitar que se vean incompletas al abrir el álbum
-    const isEager = Number(page.number) <= 8;
-    const stickerHtml = page.slots.map(slot => {
-      if (!slot) return '<div class="sticker-placeholder"></div>';
-      return renderSticker(slot.data, slot.isCollected, isEager);
-    }).join('');
-
-    const pageBgUrl = (currentTheme?.page_backgrounds || {})[page.number];
-    const pageStyle = pageBgUrl ? `background-image: url('${pageBgUrl}');` : '';
-
-    const gridClass = page.isSectionCover ? 'sticker-grid sticker-grid--cover' : 'sticker-grid';
-
-    book.insertAdjacentHTML('beforeend', `
-      <div class="page">
-        <div class="page-content" style="${pageStyle}">
-          <div class="${gridClass}">
-            ${stickerHtml}
-          </div>
-        </div>
-      </div>
-    `);
+  // ── Construir mapa de páginas personalizadas (page_number → custom page) ──
+  const customPagesMap = {};
+  (currentTheme?.custom_pages || []).forEach(cp => {
+    if (cp.page_number) {
+      customPagesMap[Number(cp.page_number)] = cp;
+    }
   });
 
-  // Paridad: páginas internas = inner-cover + contenido + back-inner
-  // Para StPageFlip con showCover:true las dos tapas hard no cuentan
-  // Las internas (entre las tapas) deben ser par
-  const innerPages = 1 + pages.length + 1; // inner-cover + content + back-inner
+  // ── Unir page numbers de secciones y páginas personalizadas, ordenar ──
+  const sectionPageNums = new Set(pages.map(p => Number(p.number)));
+  const customPageNums  = new Set(Object.keys(customPagesMap).map(Number));
+  const allPageNums     = new Set([...sectionPageNums, ...customPageNums]);
+  const sortedPageNums  = [...allPageNums].sort((a, b) => a - b);
+
+  let contentPageCount = 0;
+
+  sortedPageNums.forEach((pageNum, index) => {
+    const isEager = index < 8;
+
+    if (customPagesMap[pageNum]) {
+      // ── Página personalizada: imagen a pantalla completa ──
+      const cp = customPagesMap[pageNum];
+      const bgStyle = cp.image_url
+        ? `background-image: url('${cp.image_url}');`
+        : '';
+      book.insertAdjacentHTML('beforeend', `
+        <div class="page page--custom">
+          <div class="page-content page-content--custom" style="${bgStyle}"></div>
+        </div>
+      `);
+    } else {
+      // ── Página de sección: grid de stickers ──
+      const page = pages.find(p => Number(p.number) === pageNum);
+      if (!page) return;
+
+      const stickerHtml = page.slots.map(slot => {
+        if (!slot) return '<div class="sticker-placeholder"></div>';
+        return renderSticker(slot.data, slot.isCollected, isEager);
+      }).join('');
+
+      const pageBgUrl = (currentTheme?.page_backgrounds || {})[page.number];
+      const pageStyle = pageBgUrl ? `background-image: url('${pageBgUrl}');` : '';
+      const gridClass = page.isSectionCover ? 'sticker-grid sticker-grid--cover' : 'sticker-grid';
+
+      book.insertAdjacentHTML('beforeend', `
+        <div class="page">
+          <div class="page-content" style="${pageStyle}">
+            <div class="${gridClass}">
+              ${stickerHtml}
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    contentPageCount++;
+  });
+
+  // ── Paridad: páginas internas deben ser par para StPageFlip ──
+  // inner-cover (1) + contentPages + back-inner (1) debe ser par
+  const innerPages = 1 + contentPageCount + 1;
   if (innerPages % 2 !== 0) {
     book.insertAdjacentHTML('beforeend', `<div class="page page--blank"></div>`);
   }
@@ -660,7 +715,6 @@ async function renderDuplicatesTray(profile, collectedIds) {
         <button class="baul-filter-btn active" data-rarity="all">Todos</button>
         <button class="baul-filter-btn" data-rarity="common">Comunes</button>
         <button class="baul-filter-btn" data-rarity="rare">Míticas</button>
-        <button class="baul-filter-btn" data-rarity="legendary">Legendarios</button>
       </div>
     </div>
     <div class="baul-modal__body" id="baul-body"></div>
@@ -707,7 +761,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
       return;
     }
 
-    rawDuplicates = data.filter(d => d.employees !== null);
+    rawDuplicates = data.filter(d => d.employees !== null && d.employees.rarity !== 'legendary');
     updateBaulBadge(rawDuplicates.length);
     filterAndRender();
   }
@@ -778,9 +832,12 @@ async function renderDuplicatesTray(profile, collectedIds) {
               .from('employees')
               .select('id', { count: 'exact', head: true })
               .eq('company_id', profile.company_id)
-              .eq('is_active', true);
+              .eq('is_active', true)
+              .neq('rarity', 'legendary');
             renderProgressBar(collectedIds.size, count || collectedIds.size);
             loadBaul();
+            // Verificar hitos tras pegar laminita desde el baúl
+            checkMilestones(collectedIds).catch(err => console.warn('checkMilestones error:', err));
           } else {
             console.error('Error al pegar laminita desde el baúl:', error);
             pasteBtn.disabled = false;
@@ -821,7 +878,7 @@ async function renderDuplicatesTray(profile, collectedIds) {
   }
 }
 
-function renderUserMenu(profile, collectedIds, employees) {
+function renderUserMenu(profile, collectedIds, employees, companySlug = '') {
   const menu = document.getElementById('user-menu');
   const backdrop = document.getElementById('user-menu-backdrop');
   if (!menu || !backdrop) return;
@@ -891,12 +948,15 @@ function renderUserMenu(profile, collectedIds, employees) {
   document.getElementById('btn-close-user-menu')?.addEventListener('click', closeMenu);
   backdrop.addEventListener('click', closeMenu);
 
-  // 6. btn-logout-menu → llama logoutUser()
-  document.getElementById('btn-logout-menu')?.addEventListener('click', async () => {
-    await logoutUser();
-  });
+  const handleLogoutRedirect = async () => {
+    await supabase.auth.signOut();
+    window.location.href = companySlug ? `/join?slug=${companySlug}` : '/';
+  };
 
-  // 7. btn-delete-account → RPC fn_delete_employee_account → logoutUser()
+  // 6. btn-logout-menu → redirecciona a /join con slug
+  document.getElementById('btn-logout-menu')?.addEventListener('click', handleLogoutRedirect);
+
+  // 7. btn-delete-account → RPC fn_delete_employee_account → handleLogoutRedirect()
   document.getElementById('btn-delete-account')?.addEventListener('click', async () => {
     const confirmed = confirm('¿Estás absolutamente seguro de que deseas eliminar tu cuenta permanentemente? Esta acción es irreversible y perderás todo tu progreso en el álbum.');
     if (!confirmed) return;
@@ -906,7 +966,7 @@ function renderUserMenu(profile, collectedIds, employees) {
       alert(`Error al eliminar la cuenta: ${error.message}`);
     } else {
       alert('Tu cuenta ha sido eliminada correctamente.');
-      await logoutUser();
+      await handleLogoutRedirect();
     }
   });
 }
@@ -917,7 +977,7 @@ async function renderLegendaryCollection(profile) {
   // Obtener todas las legendarias de la empresa
   const { data: allLegendary } = await supabase
     .from('employees')
-    .select('id, name, photo_url, rarity')
+    .select('id, name, photo_url, placeholder_url, rarity')
     .eq('company_id', profile.company_id)
     .eq('is_active', true)
     .eq('rarity', 'legendary');
@@ -971,10 +1031,13 @@ async function renderLegendaryCollection(profile) {
       card.className = `legendary-card ${hasIt ? 'legendary-card--collected' : 'legendary-card--locked'}`;
       card.innerHTML = hasIt
         ? renderSticker(emp, true)
-        : `<div class="legendary-card__locked">
-             <span class="legendary-card__lock">🔒</span>
-             <span class="legendary-card__lock-name">???</span>
-           </div>`;
+        : (emp.placeholder_url
+            ? `<img src="${emp.placeholder_url}" alt="Reverso" class="legendary-card__locked-img">`
+            : `<div class="legendary-card__locked">
+                 <span class="legendary-card__lock">🔒</span>
+                 <span class="legendary-card__lock-name">???</span>
+               </div>`
+          );
       grid.appendChild(card);
     });
   }

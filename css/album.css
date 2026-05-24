@@ -95,6 +95,19 @@
 }
 .page--back-inner .page-content { padding: 0; }
 
+/* ── Página personalizada (imagen a pantalla completa) ── */
+.page--custom {
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+.page-content--custom {
+  padding: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .album-title {
   font-family: var(--font-primary, 'Playfair Display', serif);
   font-size: 2.5rem;
@@ -1870,6 +1883,15 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  overflow: hidden;
+}
+
+.legendary-card__locked-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
 }
 
 .legendary-card__lock {

@@ -322,8 +322,20 @@ function buildRailSegment(idx, currentPct) {
  * Útil para sincronizar tras abrir el modal de ranking.
  */
 export async function refreshUserMilestones(companyId) {
-  const { data } = await supabase.rpc('fn_get_user_milestones', {
+  const { data, error } = await supabase.rpc('fn_get_user_milestones', {
     p_company_id: companyId
   });
-  if (data) _userMilestones = data;
+  if (error) {
+    console.error('Error refreshing user milestones:', error);
+  }
+  if (data) {
+    // Preservar unlocked_at local si ya está definido en memoria para evitar sobreescrituras con datos obsoletos
+    data.forEach(item => {
+      const local = _userMilestones.find(um => um.milestone_id === item.milestone_id);
+      if (local && local.unlocked_at && !item.unlocked_at) {
+        item.unlocked_at = local.unlocked_at;
+      }
+    });
+    _userMilestones = data;
+  }
 }
