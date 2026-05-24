@@ -848,3 +848,47 @@ input[type="range"].legendary-slider::-webkit-slider-thumb {
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* ── Tabs de Accesos ── */
+.accesos-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--space-lg);
+  background: var(--surface-soft);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  width: fit-content;
+}
+
+.accesos-tab {
+  padding: 8px 20px;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.accesos-tab:hover {
+  background: var(--surface);
+  color: var(--text-main);
+}
+
+.accesos-tab--active {
+  background: var(--surface);
+  color: var(--text-main);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.accesos-panel {
+  display: none;
+}
+
+.accesos-panel--active {
+  display: block;
+}

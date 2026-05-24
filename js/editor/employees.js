@@ -224,8 +224,16 @@ async function renameSection(id, name) {
 }
 
 async function deleteSection(id) {
-  const { error } = await supabase.from('album_sections').delete().eq('id', id);
-  if (!error) { await loadSections(); await loadEmployees(); loadStats(); }
+  confirmAction(
+    '¿Eliminar esta sección? Los empleados asociados quedarán sin sección asignada.',
+    async () => {
+      const { error } = await supabase.from('album_sections').delete().eq('id', id);
+      if (!error) {
+        await loadSections();
+        await loadEmployees();
+      }
+    }
+  );
 }
 
 // ══════════════════════════════════════════════
@@ -540,8 +548,13 @@ function cancelEmployeeEdit() {
 }
 
 async function deleteEmployee(id) {
-  const { error } = await supabase.from('employees').delete().eq('id', id);
-  if (!error) { await loadEmployees(); loadStats(); loadLayoutPreview(); }
+  confirmAction(
+    '¿Eliminar esta laminita permanentemente? Esta acción no se puede deshacer.',
+    async () => {
+      const { error } = await supabase.from('employees').delete().eq('id', id);
+      if (!error) await loadEmployees();
+    }
+  );
 }
 
 // ══════════════════════════════════════════════
@@ -733,7 +746,12 @@ function addPageBgRow(pageNum = '', currentUrl = null) {
     <button class="btn btn-danger btn-sm btn-remove-bg">❌</button>
   `;
 
-  row.querySelector('.btn-remove-bg').addEventListener('click', () => row.remove());
+  row.querySelector('.btn-remove-bg').addEventListener('click', () => {
+    confirmAction(
+      '¿Eliminar este fondo de página de la lista?',
+      () => row.remove()
+    );
+  });
   container.appendChild(row);
 }
 
@@ -788,7 +806,27 @@ function normalizeImageToJpeg(file) {
 function setupAccesos() {
   document.getElementById('btn-add-email')
     ?.addEventListener('click', addEmail);
+
+  document.querySelectorAll('.accesos-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.accesos-tab')
+        .forEach(t => t.classList.remove('accesos-tab--active'));
+      document.querySelectorAll('.accesos-panel')
+        .forEach(p => p.classList.remove('accesos-panel--active'));
+
+      tab.classList.add('accesos-tab--active');
+      const panelId = 'panel-' + tab.dataset.tab;
+      document.getElementById(panelId)
+        ?.classList.add('accesos-panel--active');
+
+      if (tab.dataset.tab === 'legendarias') {
+        loadGrantSection();
+      }
+    });
+  });
 }
+
+let _accesosData = [];
 
 async function loadAccesos() {
   const list = document.getElementById('emails-list');
@@ -801,8 +839,38 @@ async function loadAccesos() {
     });
 
   if (error || !data || data.length === 0) {
+    _accesosData = [];
     list.innerHTML =
       '<p class="empty-state">No hay correos autorizados aún.</p>';
+    return;
+  }
+
+  _accesosData = data;
+  renderAccesosList(data);
+
+  // Conectar buscador (solo la primera vez)
+  const searchInput = document.getElementById('input-search-email');
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = '1';
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const filtered = q
+        ? _accesosData.filter(d =>
+            d.email.toLowerCase().includes(q) ||
+            (d.display_name && d.display_name.toLowerCase().includes(q))
+          )
+        : _accesosData;
+      renderAccesosList(filtered);
+    });
+  }
+}
+
+function renderAccesosList(data) {
+  const list = document.getElementById('emails-list');
+  if (!list) return;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p class="empty-state">Sin resultados.</p>';
     return;
   }
 
@@ -854,12 +922,16 @@ async function addEmail() {
 }
 
 async function deleteEmail(id) {
-  const { error } = await supabase
-    .from('allowed_emails')
-    .delete()
-    .eq('id', id);
-
-  if (!error) loadAccesos();
+  confirmAction(
+    '¿Eliminar este correo de la lista de acceso? El usuario perderá acceso al álbum.',
+    async () => {
+      const { error } = await supabase
+        .from('allowed_emails')
+        .delete()
+        .eq('id', id);
+      if (!error) loadAccesos();
+    }
+  );
 }
 
 async function loadGrantSection() {
@@ -981,11 +1053,16 @@ async function grantLegendary() {
 
 async function revokeGrant(grantId, empId, userId) {
   if (!empId || !userId) return;
-  const { error } = await supabase.rpc('fn_revoke_legendary', {
-    p_employee_id: empId,
-    p_user_id: userId
-  });
-  if (!error) loadGrantsList();
+  confirmAction(
+    '¿Revocar esta laminita legendaria? Se eliminará de la colección del usuario.',
+    async () => {
+      const { error } = await supabase.rpc('fn_revoke_legendary', {
+        p_employee_id: empId,
+        p_user_id: userId
+      });
+      if (!error) loadGrantsList();
+    }
+  );
 }
 
 function setupGrants() {
@@ -1025,6 +1102,68 @@ async function loadEditorRanking() {
       </div>
     `;
     list.appendChild(row);
+  });
+}
+
+function confirmAction(message, onConfirm) {
+  const existing = document.getElementById('confirm-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'confirm-modal';
+  modal.style.cssText = `
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background: var(--surface);
+      border: 2px solid var(--border-main);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      max-width: 420px;
+      width: 90%;
+      box-shadow: var(--shadow-offset-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    ">
+      <p style="
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        color: var(--text-main);
+        margin: 0;
+        line-height: 1.5;
+      ">${message}</p>
+      <div style="display:flex; gap: var(--space-sm); justify-content: flex-end;">
+        <button id="confirm-cancel" class="btn btn-ghost">
+          Cancelar
+        </button>
+        <button id="confirm-ok" class="btn btn-primary" 
+          style="background: var(--danger); border-color: var(--danger-dark);">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document.getElementById('confirm-cancel').addEventListener('click', () => {
+    modal.remove();
+  });
+
+  document.getElementById('confirm-ok').addEventListener('click', () => {
+    modal.remove();
+    onConfirm();
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
   });
 }
 

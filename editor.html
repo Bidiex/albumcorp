@@ -442,63 +442,79 @@
             Gestión de Accesos
           </h1>
           <p class="section-subtitle">
-            Define qué correos pueden registrarse en el álbum de tu empresa
+            Administra quién puede entrar y qué laminitas otorgar
           </p>
         </div>
 
-        <div style="max-width: 540px;">
-          <div class="form-group" style="display:flex; gap:8px; align-items:flex-end; margin-bottom: var(--space-lg);">
-            <div style="flex:1;">
-              <label class="form-label">Correo electrónico</label>
-              <input type="email" id="input-new-email" class="form-input" placeholder="empleado@empresa.com">
-            </div>
-            <button class="btn btn-primary" id="btn-add-email">
-              Agregar
-            </button>
-          </div>
-          <div id="emails-list" class="emails-list">
-            <p class="empty-state">Cargando...</p>
-          </div>
-          <div id="accesos-feedback" class="feedback mt-md"></div>
+        <!-- Tab nav -->
+        <div class="accesos-tabs">
+          <button class="accesos-tab accesos-tab--active" data-tab="emails">
+            📧 Correos autorizados
+          </button>
+          <button class="accesos-tab" data-tab="legendarias">
+            ⭐ Laminitas Legendarias
+          </button>
         </div>
 
-        <div style="max-width: 540px; margin-top: var(--space-2xl);">
-          <h3 style="font-family:var(--font-heading); font-size:1.1rem; 
-            font-weight:800; margin-bottom: var(--space-md); 
-            color: var(--warning);">
-            ⭐ Otorgar Laminitas Legendarias
-          </h3>
-          <p style="font-size:0.875rem; color:var(--text-secondary); 
-            margin-bottom: var(--space-lg);">
-            Selecciona un usuario y una laminita legendaria para otorgársela manualmente.
-          </p>
-          <div style="display:flex; flex-direction:column; gap: var(--space-md);">
-            <div class="form-group">
-              <label class="form-label">Usuario</label>
-              <select id="select-grant-user" class="form-select">
-                <option value="">— Seleccionar usuario —</option>
-              </select>
+        <!-- Panel: Correos autorizados -->
+        <div class="accesos-panel accesos-panel--active" id="panel-emails">
+          <div style="max-width: 540px;">
+            <div class="form-group" style="display:flex; gap:8px; align-items:flex-end; margin-bottom: var(--space-lg);">
+              <div style="flex:1;">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email" id="input-new-email" class="form-input" placeholder="empleado@empresa.com">
+              </div>
+              <button class="btn btn-primary" id="btn-add-email">
+                Agregar
+              </button>
             </div>
-            <div class="form-group">
-              <label class="form-label">Laminita Legendaria</label>
-              <select id="select-grant-legendary" class="form-select">
-                <option value="">— Seleccionar laminita —</option>
-              </select>
+            <div class="form-group" style="margin-bottom: var(--space-sm);">
+              <input type="text" id="input-search-email"
+                class="form-input"
+                placeholder="Buscar por correo o nombre...">
             </div>
-            <button class="btn btn-primary" id="btn-grant-legendary"
-              style="background: var(--warning); border-color: var(--warning-dark);">
-              ⭐ Otorgar Legendaria
-            </button>
+            <div id="emails-list" class="emails-list">
+              <p class="empty-state">Cargando...</p>
+            </div>
+            <div id="accesos-feedback" class="feedback mt-md"></div>
           </div>
-          <div id="grant-feedback" class="feedback mt-md"></div>
+        </div>
 
-          <div style="margin-top: var(--space-xl);">
-            <h4 style="font-family:var(--font-heading); font-size:0.95rem;
-              font-weight:700; margin-bottom: var(--space-md);
-              color: var(--text-secondary);">
-              Legendarias otorgadas
-            </h4>
-            <div id="grants-list"></div>
+        <!-- Panel: Laminitas Legendarias -->
+        <div class="accesos-panel" id="panel-legendarias">
+          <div style="max-width: 540px;">
+            <p style="font-size:0.875rem; color:var(--text-secondary); 
+              margin-bottom: var(--space-lg);">
+              Selecciona un usuario y una laminita legendaria para otorgársela manualmente.
+            </p>
+            <div style="display:flex; flex-direction:column; gap: var(--space-md);">
+              <div class="form-group">
+                <label class="form-label">Usuario</label>
+                <select id="select-grant-user" class="form-select">
+                  <option value="">— Seleccionar usuario —</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Laminita Legendaria</label>
+                <select id="select-grant-legendary" class="form-select">
+                  <option value="">— Seleccionar laminita —</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="btn-grant-legendary"
+                style="background: var(--warning); border-color: var(--warning-dark);">
+                ⭐ Otorgar Legendaria
+              </button>
+            </div>
+            <div id="grant-feedback" class="feedback mt-md"></div>
+
+            <div style="margin-top: var(--space-xl);">
+              <h4 style="font-family:var(--font-heading); font-size:0.95rem;
+                font-weight:700; margin-bottom: var(--space-md);
+                color: var(--text-secondary);">
+                Legendarias otorgadas
+              </h4>
+              <div id="grants-list"></div>
+            </div>
           </div>
         </div>
       </section>
