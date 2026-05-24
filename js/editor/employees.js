@@ -77,6 +77,8 @@ async function init() {
   loadAccesos();
   setupGrants();
   loadGrantSection();
+  setupMilestones();
+  loadMilestones();
 }
 
 // ══════════════════════════════════════════════
@@ -809,10 +811,17 @@ function setupAccesos() {
 
   document.querySelectorAll('.accesos-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.accesos-tab')
-        .forEach(t => t.classList.remove('accesos-tab--active'));
-      document.querySelectorAll('.accesos-panel')
-        .forEach(p => p.classList.remove('accesos-panel--active'));
+      // Determinar el scope: tabs de #section-accesos o #section-ranking
+      const parentSection = tab.closest('.editor-section');
+      const tabsInSection = parentSection
+        ? parentSection.querySelectorAll('.accesos-tab')
+        : document.querySelectorAll('.accesos-tab');
+      const panelsInSection = parentSection
+        ? parentSection.querySelectorAll('.accesos-panel')
+        : document.querySelectorAll('.accesos-panel');
+
+      tabsInSection.forEach(t => t.classList.remove('accesos-tab--active'));
+      panelsInSection.forEach(p => p.classList.remove('accesos-panel--active'));
 
       tab.classList.add('accesos-tab--active');
       const panelId = 'panel-' + tab.dataset.tab;
@@ -821,6 +830,9 @@ function setupAccesos() {
 
       if (tab.dataset.tab === 'legendarias') {
         loadGrantSection();
+      }
+      if (tab.dataset.tab === 'ranking-list') {
+        loadEditorRanking();
       }
     });
   });
@@ -1103,6 +1115,175 @@ async function loadEditorRanking() {
     `;
     list.appendChild(row);
   });
+}
+
+// ══════════════════════════════════════════════
+//   HITOS / MILESTONES
+// ══════════════════════════════════════════════
+
+// Archivos seleccionados por nivel (1-4)
+const _milestoneFiles = {};
+// IDs de los registros existentes en DB (para upsert)
+const _milestoneIds   = {};
+
+function setupMilestones() {
+  // Listeners de archivo por cada nivel
+  for (let level = 1; level <= 4; level++) {
+    const fileInput = document.getElementById(`milestone-file-${level}`);
+    if (!fileInput) continue;
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      _milestoneFiles[level] = file;
+
+      // Preview inmediato
+      const preview = document.getElementById(`milestone-preview-${level}`);
+      if (preview) {
+        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Preview nivel ${level}">`;
+      }
+    });
+  }
+
+  document.getElementById('btn-save-milestones')
+    ?.addEventListener('click', saveMilestones);
+}
+
+async function loadMilestones() {
+  const { data, error } = await supabase
+    .rpc('fn_get_milestones_config_editor', { p_company_id: companyId });
+
+  if (error || !data) return;
+
+  data.forEach(m => {
+    const level = m.level;
+    _milestoneIds[level] = m.id;
+
+    // Poblar threshold
+    const thresholdInput = document.getElementById(`milestone-threshold-${level}`);
+    if (thresholdInput) thresholdInput.value = m.threshold;
+
+    // Poblar label
+    const labelInput = document.getElementById(`milestone-label-${level}`);
+    if (labelInput && m.label) labelInput.value = m.label;
+
+    // Preview de imagen actual
+    if (m.image_url) {
+      const preview = document.getElementById(`milestone-preview-${level}`);
+      if (preview) {
+        preview.innerHTML = `<img src="${m.image_url}" alt="Medalla nivel ${level}">`;
+      }
+
+      const urlWrap = document.getElementById(`milestone-current-url-${level}`);
+      if (urlWrap) {
+        urlWrap.style.display = 'block';
+        const link = urlWrap.querySelector('a');
+        if (link) link.href = m.image_url;
+      }
+    }
+  });
+}
+
+async function saveMilestones() {
+  const btn = document.getElementById('btn-save-milestones');
+  btn.disabled = true;
+  btn.textContent = '⏳ Guardando...';
+
+  let hasError = false;
+
+  for (let level = 1; level <= 4; level++) {
+    const threshold = parseInt(document.getElementById(`milestone-threshold-${level}`)?.value) || 0;
+    const label     = document.getElementById(`milestone-label-${level}`)?.value?.trim() || '';
+
+    if (threshold < 1 || threshold > 100) {
+      showFeedback('milestones-feedback', `El % del Nivel ${level} debe estar entre 1 y 100.`, 'error');
+      hasError = true;
+      break;
+    }
+
+    let imageUrl = null;
+
+    // Subir imagen si hay archivo nuevo
+    if (_milestoneFiles[level]) {
+      let fileToUpload = _milestoneFiles[level];
+      try { fileToUpload = await normalizeImageToJpeg(_milestoneFiles[level]); } catch (e) {}
+
+      const path = `${companyId}/level_${level}_${Date.now()}.jpg`;
+      const { data: upload, error: uploadErr } = await supabase.storage
+        .from('milestone-badges')
+        .upload(path, fileToUpload, { upsert: true, contentType: 'image/jpeg' });
+
+      if (uploadErr) {
+        showFeedback('milestones-feedback', `Error al subir imagen nivel ${level}: ${uploadErr.message}`, 'error');
+        hasError = true;
+        break;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('milestone-badges')
+        .getPublicUrl(upload.path);
+      imageUrl = urlData.publicUrl;
+
+      // Actualizar preview del link
+      const urlWrap = document.getElementById(`milestone-current-url-${level}`);
+      if (urlWrap) {
+        urlWrap.style.display = 'block';
+        const link = urlWrap.querySelector('a');
+        if (link) link.href = imageUrl;
+      }
+    }
+
+    // Upsert en milestone_config
+    const payload = {
+      company_id: companyId,
+      level,
+      threshold,
+      label,
+      updated_at: new Date().toISOString()
+    };
+    if (imageUrl) payload.image_url = imageUrl;
+
+    const existingId = _milestoneIds[level];
+
+    let dbError;
+    if (existingId) {
+      // UPDATE
+      ({ error: dbError } = await supabase
+        .from('milestone_config')
+        .update(payload)
+        .eq('id', existingId));
+    } else {
+      // INSERT
+      const { data: inserted, error: insertErr } = await supabase
+        .from('milestone_config')
+        .insert(payload)
+        .select('id')
+        .single();
+      dbError = insertErr;
+      if (!insertErr && inserted) {
+        _milestoneIds[level] = inserted.id;
+      }
+    }
+
+    if (dbError) {
+      showFeedback('milestones-feedback', `Error en nivel ${level}: ${dbError.message}`, 'error');
+      hasError = true;
+      break;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Guardar hitos';
+
+  if (!hasError) {
+    showFeedback('milestones-feedback', '✅ Hitos guardados correctamente.', 'success');
+    // Limpiar archivos seleccionados
+    for (let level = 1; level <= 4; level++) {
+      delete _milestoneFiles[level];
+      const fileInput = document.getElementById(`milestone-file-${level}`);
+      if (fileInput) fileInput.value = '';
+    }
+  }
 }
 
 function confirmAction(message, onConfirm) {

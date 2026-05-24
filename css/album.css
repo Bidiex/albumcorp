@@ -1340,6 +1340,17 @@ html, body {
     transform: translate(-50%, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
   }
+
+  /* Rotar modal de Ranking */
+  .ranking-modal {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+    width: min(480px, 92vh) !important;
+    max-height: 82vw !important;
+  }
 }
 
 /* ==========================================================================
@@ -2051,3 +2062,456 @@ html, body {
 }
 
 
+/* ==========================================================================
+   ── Ranking Modal Tabs (Ranking + Pase de Batalla)
+   ========================================================================== */
+
+.ranking-modal-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 16px 24px 16px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #334155;
+}
+
+.ranking-modal-tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  color: #64748b;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.ranking-modal-tab:hover {
+  background: rgba(255,255,255,0.08);
+  color: #94a3b8;
+}
+
+.ranking-modal-tab--active {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #F59E0B;
+}
+
+.ranking-tab-panel {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  flex-direction: column;
+}
+
+.ranking-tab-panel--active {
+  display: flex;
+}
+
+/* ==========================================================================
+   ── Pase de Batalla
+   ========================================================================== */
+
+.battlepass-container {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.battlepass-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.battlepass-progress-label {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.battlepass-progress-pct {
+  font-family: var(--font-ui);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #F59E0B;
+}
+
+.battlepass-progress-bar-wrap {
+  height: 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.battlepass-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F59E0B, #FBBF24);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(245,158,11,0.5);
+}
+
+.battlepass-progress-sub {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: #475569;
+  margin: 6px 0 20px;
+}
+
+/* Track de hitos */
+.battlepass-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.battlepass-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.2s ease, background 0.2s ease;
+  position: relative;
+}
+
+.battlepass-item--unlocked {
+  background: rgba(16, 185, 129, 0.07);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.battlepass-item--next {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.12), inset 0 0 16px rgba(245,158,11,0.04);
+  animation: battlepassNextGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes battlepassNextGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(245,158,11,0.12), inset 0 0 10px rgba(245,158,11,0.03); }
+  50%       { box-shadow: 0 0 22px rgba(245,158,11,0.28), inset 0 0 18px rgba(245,158,11,0.07); }
+}
+
+.battlepass-item--locked {
+  opacity: 0.55;
+}
+
+/* Imagen de la medalla dentro del track */
+.battlepass-item-badge-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.battlepass-item-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+  transition: filter 0.2s ease;
+}
+
+.battlepass-item-badge--locked {
+  filter: grayscale(100%) brightness(0.5);
+}
+
+.battlepass-item-check {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  background: #10B981;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  border: 2px solid #1e293b;
+}
+
+.battlepass-item-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 15px;
+  border: 2px solid rgba(245, 158, 11, 0.6);
+  animation: battlepassPulseRing 1.8s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes battlepassPulseRing {
+  0%   { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* Info del hito */
+.battlepass-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.battlepass-item-label {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.battlepass-item-threshold {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.battlepass-status {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.battlepass-status--unlocked { color: #10B981; }
+.battlepass-status--next     { color: #F59E0B; }
+.battlepass-status--locked   { color: #475569; }
+
+/* Riel vertical que conecta los hitos */
+.battlepass-rail {
+  width: 3px;
+  height: 20px;
+  background: rgba(255,255,255,0.06);
+  margin: 0 0 0 42px;   /* alinea con el centro de la imagen (56/2 + 16 padding) */
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.battlepass-rail-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #10B981, #F59E0B);
+  border-radius: 999px;
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.battlepass-empty {
+  text-align: center;
+  color: #475569;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  padding: 32px 0;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   ── Modal Épico de Hito Desbloqueado
+   ========================================================================== */
+
+.milestone-unlock-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.milestone-unlock-overlay--visible {
+  opacity: 1;
+}
+
+.milestone-unlock-card {
+  position: relative;
+  background: linear-gradient(160deg, #1e1b4b 0%, #0f172a 60%, #0d1321 100%);
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  border-radius: 28px;
+  padding: 48px 36px 40px;
+  width: min(400px, 90vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(139,92,246,0.2),
+    0 40px 80px rgba(0,0,0,0.7),
+    0 0 60px rgba(139,92,246,0.25);
+  transform: scale(0.85);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.milestone-unlock-overlay--visible .milestone-unlock-card {
+  transform: scale(1);
+}
+
+/* Glow de fondo animado */
+.milestone-unlock-glow {
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(139,92,246,0.35) 0%, transparent 70%);
+  animation: milestoneGlowPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes milestoneGlowPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.7; }
+  50%       { transform: translateX(-50%) scale(1.2); opacity: 1; }
+}
+
+/* Badge de medalla */
+.milestone-unlock-badge-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.milestone-unlock-badge {
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  object-fit: cover;
+  border: 3px solid rgba(139,92,246,0.6);
+  box-shadow:
+    0 0 0 6px rgba(139,92,246,0.15),
+    0 20px 40px rgba(0,0,0,0.5),
+    0 0 30px rgba(139,92,246,0.4);
+  animation: milestoneBadgePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s both;
+}
+
+@keyframes milestoneBadgePop {
+  from { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Contenido de texto */
+.milestone-unlock-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.milestone-unlock-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #a78bfa;
+  margin: 0;
+  animation: milestoneSlideUp 0.4s ease 0.2s both;
+}
+
+.milestone-unlock-title {
+  font-family: var(--font-ui);
+  font-size: 2rem;
+  font-weight: 900;
+  margin: 0;
+  background: linear-gradient(135deg, #fff 30%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: milestoneSlideUp 0.4s ease 0.3s both;
+}
+
+.milestone-unlock-subtitle {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.6;
+  animation: milestoneSlideUp 0.4s ease 0.4s both;
+}
+
+.milestone-unlock-btn {
+  margin-top: 8px;
+  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+  border: 2px solid #4C1D95;
+  color: #fff;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 14px 40px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(139,92,246,0.45), 3px 3px 0 #4C1D95;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: milestoneSlideUp 0.4s ease 0.5s both;
+}
+
+.milestone-unlock-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 0 12px 30px rgba(139,92,246,0.6), 5px 5px 0 #4C1D95;
+}
+
+.milestone-unlock-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 0 4px 12px rgba(139,92,246,0.35), 1px 1px 0 #4C1D95;
+}
+
+@keyframes milestoneSlideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ==========================================================================
+   ── Confetti CSS
+   ========================================================================== */
+
+.milestone-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 28px;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confettiFall 1.8s ease-in forwards;
+}
+
+@keyframes confettiFall {
+  0%   { opacity: 1; transform: translateY(0) rotateZ(0deg) rotateX(0deg); }
+  80%  { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translateY(380px) rotateZ(720deg) rotateX(180deg);
+  }
+}

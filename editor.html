@@ -524,15 +524,158 @@
         <div class="section-header">
           <h1 class="section-title">
             <span class="section-icon">🏆</span>
-            Ranking de Coleccionistas
+            Ranking &amp; Hitos
           </h1>
           <p class="section-subtitle">
-            Posiciones basadas en laminitas pegadas en el álbum
+            Posiciones y sistema de logros del álbum
           </p>
         </div>
-        <div style="max-width: 540px;">
-          <div id="editor-ranking-list">
-            <p class="empty-state">Cargando...</p>
+
+        <!-- Tab nav -->
+        <div class="accesos-tabs">
+          <button class="accesos-tab accesos-tab--active" data-tab="ranking-list">
+            🏆 Ranking
+          </button>
+          <button class="accesos-tab" data-tab="hitos">
+            🏅 Hitos
+          </button>
+        </div>
+
+        <!-- Panel: Ranking -->
+        <div class="accesos-panel accesos-panel--active" id="panel-ranking-list">
+          <div style="max-width: 540px;">
+            <div id="editor-ranking-list">
+              <p class="empty-state">Cargando...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: Hitos -->
+        <div class="accesos-panel" id="panel-hitos">
+          <div style="max-width: 580px;">
+            <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom: var(--space-lg);">
+              Define los hitos del álbum. El usuario recibirá una medalla cuando alcance cada porcentaje.<br>
+              <strong>Importante:</strong> La funcionalidad solo se activa en el álbum cuando todos los hitos tienen imagen configurada.
+            </p>
+
+            <div id="milestones-form" style="display:flex; flex-direction:column; gap: var(--space-lg);">
+              <!-- Hito 1: Bronce -->
+              <div class="milestone-row" data-level="1">
+                <div class="milestone-row__badge">
+                  <div class="milestone-row__preview" id="milestone-preview-1">
+                    <span class="milestone-row__icon">🥉</span>
+                  </div>
+                  <input type="file" id="milestone-file-1" class="milestone-file-input" accept="image/*">
+                  <label for="milestone-file-1" class="milestone-file-label">Subir imagen</label>
+                </div>
+                <div class="milestone-row__fields">
+                  <div class="milestone-row__name">Nivel 1 — Bronce</div>
+                  <div class="form-group milestone-row__pct-group">
+                    <label class="form-label" for="milestone-threshold-1">% para desbloquear</label>
+                    <div class="milestone-pct-wrap">
+                      <input type="number" id="milestone-threshold-1" class="form-input milestone-threshold" min="1" max="100" value="30" placeholder="30">
+                      <span class="milestone-pct-symbol">%</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="milestone-label-1">Nombre del hito</label>
+                    <input type="text" id="milestone-label-1" class="form-input" value="Bronce" placeholder="Bronce">
+                  </div>
+                  <div id="milestone-current-url-1" class="milestone-current-url" style="display:none;">
+                    <a href="#" target="_blank">🔗 Ver imagen actual</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hito 2: Plata -->
+              <div class="milestone-row" data-level="2">
+                <div class="milestone-row__badge">
+                  <div class="milestone-row__preview" id="milestone-preview-2">
+                    <span class="milestone-row__icon">🥈</span>
+                  </div>
+                  <input type="file" id="milestone-file-2" class="milestone-file-input" accept="image/*">
+                  <label for="milestone-file-2" class="milestone-file-label">Subir imagen</label>
+                </div>
+                <div class="milestone-row__fields">
+                  <div class="milestone-row__name">Nivel 2 — Plata</div>
+                  <div class="form-group milestone-row__pct-group">
+                    <label class="form-label" for="milestone-threshold-2">% para desbloquear</label>
+                    <div class="milestone-pct-wrap">
+                      <input type="number" id="milestone-threshold-2" class="form-input milestone-threshold" min="1" max="100" value="50" placeholder="50">
+                      <span class="milestone-pct-symbol">%</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="milestone-label-2">Nombre del hito</label>
+                    <input type="text" id="milestone-label-2" class="form-input" value="Plata" placeholder="Plata">
+                  </div>
+                  <div id="milestone-current-url-2" class="milestone-current-url" style="display:none;">
+                    <a href="#" target="_blank">🔗 Ver imagen actual</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hito 3: Oro -->
+              <div class="milestone-row" data-level="3">
+                <div class="milestone-row__badge">
+                  <div class="milestone-row__preview" id="milestone-preview-3">
+                    <span class="milestone-row__icon">🥇</span>
+                  </div>
+                  <input type="file" id="milestone-file-3" class="milestone-file-input" accept="image/*">
+                  <label for="milestone-file-3" class="milestone-file-label">Subir imagen</label>
+                </div>
+                <div class="milestone-row__fields">
+                  <div class="milestone-row__name">Nivel 3 — Oro</div>
+                  <div class="form-group milestone-row__pct-group">
+                    <label class="form-label" for="milestone-threshold-3">% para desbloquear</label>
+                    <div class="milestone-pct-wrap">
+                      <input type="number" id="milestone-threshold-3" class="form-input milestone-threshold" min="1" max="100" value="70" placeholder="70">
+                      <span class="milestone-pct-symbol">%</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="milestone-label-3">Nombre del hito</label>
+                    <input type="text" id="milestone-label-3" class="form-input" value="Oro" placeholder="Oro">
+                  </div>
+                  <div id="milestone-current-url-3" class="milestone-current-url" style="display:none;">
+                    <a href="#" target="_blank">🔗 Ver imagen actual</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hito 4: Platino -->
+              <div class="milestone-row" data-level="4">
+                <div class="milestone-row__badge">
+                  <div class="milestone-row__preview" id="milestone-preview-4">
+                    <span class="milestone-row__icon">🏆</span>
+                  </div>
+                  <input type="file" id="milestone-file-4" class="milestone-file-input" accept="image/*">
+                  <label for="milestone-file-4" class="milestone-file-label">Subir imagen</label>
+                </div>
+                <div class="milestone-row__fields">
+                  <div class="milestone-row__name">Nivel 4 — Platino</div>
+                  <div class="form-group milestone-row__pct-group">
+                    <label class="form-label" for="milestone-threshold-4">% para desbloquear</label>
+                    <div class="milestone-pct-wrap">
+                      <input type="number" id="milestone-threshold-4" class="form-input milestone-threshold" min="1" max="100" value="100" placeholder="100">
+                      <span class="milestone-pct-symbol">%</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="milestone-label-4">Nombre del hito</label>
+                    <input type="text" id="milestone-label-4" class="form-input" value="Platino" placeholder="Platino">
+                  </div>
+                  <div id="milestone-current-url-4" class="milestone-current-url" style="display:none;">
+                    <a href="#" target="_blank">🔗 Ver imagen actual</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="milestones-feedback" class="feedback mt-lg"></div>
+            <button class="btn btn-primary btn-lg mt-md" id="btn-save-milestones">
+              💾 Guardar hitos
+            </button>
           </div>
         </div>
       </section>

@@ -892,3 +892,123 @@ input[type="range"].legendary-slider::-webkit-slider-thumb {
 .accesos-panel--active {
   display: block;
 }
+
+/* ── Milestone Row (panel de hitos en el editor) ── */
+.milestone-row {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: flex-start;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-offset-sm);
+  padding: var(--space-lg);
+  transition: border-color var(--transition-fast);
+}
+
+.milestone-row:hover {
+  border-color: var(--primary);
+}
+
+.milestone-row__badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.milestone-row__preview {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border-main);
+  background: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.milestone-row__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(var(--radius-lg) - 2px);
+}
+
+.milestone-row__icon {
+  font-size: 2.4rem;
+}
+
+.milestone-file-input {
+  display: none;
+}
+
+.milestone-file-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.milestone-file-label:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.milestone-row__fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.milestone-row__name {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.milestone-pct-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.milestone-pct-wrap .form-input {
+  width: 88px;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.milestone-pct-symbol {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.milestone-current-url {
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.milestone-current-url a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.milestone-current-url a:hover {
+  text-decoration: underline;
+}
+

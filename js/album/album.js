@@ -5,6 +5,13 @@ import { loadTheme } from '../core/theme.js';
 import { renderSticker } from './stickers.js';
 import { openPack } from './pack.js';
 import { renderExchangeModal } from './exchange.js';
+import {
+  initMilestones,
+  isMilestonesEnabled,
+  checkMilestones,
+  renderBattlePass,
+  refreshUserMilestones
+} from './milestones.js';
 
 let pageFlip = null;
 let currentTheme = null;
@@ -28,7 +35,12 @@ async function initAlbum() {
   requestAnimationFrame(adjustBookScale);
   window.addEventListener('resize', () => requestAnimationFrame(adjustBookScale));
 
-  // 3. UI adicional
+  // 3. Inicializar hitos (en paralelo, no bloquea el álbum)
+  initMilestones(profile, employees.length).catch(err =>
+    console.warn('No se pudieron cargar los hitos:', err)
+  );
+
+  // 4. UI adicional
   renderProgressBar(collectedIds.size, employees.length);
   renderPackButton(packsAvailable, profile, employees, collectedIds);
   renderLegendaryCollection(profile);
@@ -530,6 +542,8 @@ function renderPackButton(packsAvailable, profile, employees, collectedIds) {
     }
     renderProgressBar(collectedIds.size, employees.length);
     window.__refreshDuplicates?.();
+    // Verificar hitos tras pegar laminita
+    checkMilestones(collectedIds).catch(err => console.warn('checkMilestones error:', err));
   };
 
   btn.onclick = async () => {
@@ -539,6 +553,8 @@ function renderPackButton(packsAvailable, profile, employees, collectedIds) {
       packs = Math.max(0, packs - 1);
       updateButton();
       window.__refreshDuplicates?.();
+      // Verificar hitos tras abrir sobre
+      checkMilestones(collectedIds).catch(err => console.warn('checkMilestones error:', err));
     }, window.__onStickerPasted);
   };
 
@@ -1013,7 +1029,7 @@ async function renderRanking(profile, collectedIds) {
   const topBar = document.getElementById('album-top-bar');
   if (topBar) topBar.appendChild(rankBtn);
 
-  // Modal
+  // Modal con 2 tabs: Ranking + Pase de Batalla
   const modal = document.createElement('div');
   modal.className = 'ranking-modal-overlay';
   modal.innerHTML = `
@@ -1022,17 +1038,59 @@ async function renderRanking(profile, collectedIds) {
         <h2 class="ranking-modal__title">🏆 Ranking</h2>
         <button class="ranking-modal__close" id="btn-close-ranking">✕</button>
       </div>
-      <div class="ranking-search-wrap">
-        <input type="text" id="ranking-search" 
-          class="ranking-search" 
-          placeholder="Buscar colaborador...">
+
+      <div class="ranking-modal-tabs">
+        <button class="ranking-modal-tab ranking-modal-tab--active" data-rtab="ranking">
+          🏆 Ranking
+        </button>
+        <button class="ranking-modal-tab" data-rtab="battlepass">
+          🏅 Mis Medallas
+        </button>
       </div>
-      <div class="ranking-list" id="ranking-list">
-        <p class="ranking-empty">Cargando...</p>
+
+      <!-- Panel: Ranking -->
+      <div class="ranking-tab-panel ranking-tab-panel--active" id="rtab-panel-ranking">
+        <div class="ranking-search-wrap">
+          <input type="text" id="ranking-search"
+            class="ranking-search"
+            placeholder="Buscar colaborador...">
+        </div>
+        <div class="ranking-list" id="ranking-list">
+          <p class="ranking-empty">Cargando...</p>
+        </div>
+      </div>
+
+      <!-- Panel: Pase de Batalla -->
+      <div class="ranking-tab-panel" id="rtab-panel-battlepass">
+        <div class="battlepass-container" id="battlepass-container">
+          <p class="ranking-empty">Cargando...</p>
+        </div>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
+
+  // Lógica de tabs del ranking modal
+  modal.querySelectorAll('.ranking-modal-tab').forEach(tab => {
+    tab.addEventListener('click', async () => {
+      modal.querySelectorAll('.ranking-modal-tab')
+        .forEach(t => t.classList.remove('ranking-modal-tab--active'));
+      modal.querySelectorAll('.ranking-tab-panel')
+        .forEach(p => p.classList.remove('ranking-tab-panel--active'));
+
+      tab.classList.add('ranking-modal-tab--active');
+      const panelId = 'rtab-panel-' + tab.dataset.rtab;
+      document.getElementById(panelId)?.classList.add('ranking-tab-panel--active');
+
+      if (tab.dataset.rtab === 'battlepass') {
+        await refreshUserMilestones(profile.company_id);
+        renderBattlePass(
+          document.getElementById('battlepass-container'),
+          collectedIds
+        );
+      }
+    });
+  });
 
   let rankingData = [];
 
