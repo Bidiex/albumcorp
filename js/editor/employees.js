@@ -426,7 +426,7 @@ async function saveEmployee() {
   }
 
   if (!editingEmployeeId) {
-    if (!selectedPhotoFile) return showFeedback('emp-feedback', 'La foto del cromo es obligatoria.', 'error');
+    if (!selectedPhotoFile) return showFeedback('emp-feedback', 'La foto de la laminita es obligatoria.', 'error');
     if (!selectedPlaceholderFile) return showFeedback('emp-feedback', 'La silueta/base es obligatoria.', 'error');
   }
 

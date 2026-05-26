@@ -5,7 +5,9 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
+  height: 100dvh;
   max-height: 100vh;
+  max-height: 100dvh;
   overflow: hidden;
   padding: var(--space-lg) var(--space-xl);
   gap: var(--space-md);
@@ -298,7 +300,9 @@
   position: relative;
   cursor: pointer;
   max-width: 90vw;
+  max-width: 90dvw;
   max-height: 80vh;
+  max-height: 80dvh;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(124, 58, 237, 0.35);
@@ -316,6 +320,7 @@
   max-width: 420px; /* Tamaño ideal vertical del sobre */
   height: auto;
   max-height: 75vh;
+  max-height: 75dvh;
   display: block;
 }
 
@@ -760,8 +765,11 @@
   left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
   width: min(860px, 92vw);
+  width: min(860px, 92dvw);
   height: min(620px, 80vh);
+  height: min(620px, 80dvh);
   max-height: 80vh;
+  max-height: 80dvh;
   background: #1e293b;
   border: 2px solid #334155;
   border-radius: 16px;
@@ -1148,8 +1156,8 @@ html, body {
 @media (max-width: 768px) and (orientation: portrait) {
   html, body {
     overflow: hidden;
-    width: 100vw;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
     margin: 0;
     position: fixed;
   }
@@ -1158,11 +1166,48 @@ html, body {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 100vh !important;
-    height: 100vw !important;
+    width: 100dvh !important;
+    height: 100dvw !important;
     transform: translate(-50%, -50%) rotate(90deg);
     transform-origin: center center;
     overflow: hidden;
+  }
+
+  /* Ajustar botones flotantes (Baúl + Intercambiar) a la izquierda de la pantalla con safe area */
+  .floating-actions {
+    position: absolute !important;
+    left: calc(20px + env(safe-area-inset-top)) !important;
+    bottom: calc(20px + env(safe-area-inset-left)) !important;
+    right: auto !important;
+    top: auto !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: auto !important;
+    margin-top: 0 !important;
+    z-index: 100 !important;
+  }
+
+  /* Ajustar sobre de pack (regalo) al bottom-left de la pantalla con safe area */
+  .pack-container {
+    position: absolute !important;
+    right: calc(24px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(24px + env(safe-area-inset-left)) !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    z-index: 100 !important;
+  }
+
+  /* Ajustar toolbar de desarrollo al bottom-right de la pantalla con safe area */
+  .dev-toolbar {
+    position: absolute !important;
+    right: calc(24px + env(safe-area-inset-bottom)) !important;
+    top: calc(24px + env(safe-area-inset-right)) !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    z-index: 100 !important;
   }
 
   /* Rotar modal de Mi Baúl */
@@ -1172,8 +1217,8 @@ html, body {
     left: 50% !important;
     transform: translate(-50%, -50%) rotate(90deg) scale(0.95) !important;
     transform-origin: center center !important;
-    width: min(860px, 92vh) !important;
-    max-height: 82vw !important;
+    width: min(860px, 92dvh) !important;
+    max-height: 82dvw !important;
   }
   .baul-modal.open {
     transform: translate(-50%, -50%) rotate(90deg) scale(1) !important;
@@ -1196,10 +1241,10 @@ html, body {
     left: 50% !important;
     transform: translate(-50%, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
-    width: min(860px, 92vh) !important;
-    max-width: 92vh !important;
-    height: 82vw !important;
-    max-height: 82vw !important;
+    width: min(860px, 92dvh) !important;
+    max-width: 92dvh !important;
+    height: 82dvw !important;
+    max-height: 82dvw !important;
   }
 
   /* Rotar modal de detalle de sticker */
@@ -1216,8 +1261,8 @@ html, body {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
-    width: 100vh !important;
-    height: 100vw !important;
+    width: 100dvh !important;
+    height: 100dvw !important;
     transform: translate(-50%, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
     gap: 12px !important;
@@ -1268,8 +1313,8 @@ html, body {
   /* Ajustar barra superior (avatar + ranking) y menú */
   #album-top-bar {
     position: absolute !important;
-    top: 12px !important;
-    left: 12px !important;
+    top: calc(12px + env(safe-area-inset-right)) !important;
+    left: calc(12px + env(safe-area-inset-top)) !important;
     bottom: auto !important;
     right: auto !important;
     z-index: 200 !important;
@@ -1297,7 +1342,7 @@ html, body {
   .album-progress {
     position: absolute !important;
     left: calc(50% - 180px) !important;
-    top: 16px !important;
+    top: calc(16px + env(safe-area-inset-right)) !important;
     right: auto !important;
     bottom: auto !important;
     transform: none !important;
@@ -1308,8 +1353,8 @@ html, body {
   /* Ajustar botón legendario y modal */
   .legendary-btn {
     position: absolute !important;
-    top: 12px !important;
-    right: 12px !important;
+    top: calc(12px + env(safe-area-inset-right)) !important;
+    right: calc(12px + env(safe-area-inset-bottom)) !important;
     bottom: auto !important;
     left: auto !important;
     z-index: 200 !important;
@@ -1327,20 +1372,20 @@ html, body {
   }
 
   .legendary-modal {
-    width: min(860px, 92vh) !important;
-    max-height: 82vw !important;
+    width: min(860px, 92dvh) !important;
+    max-height: 82dvw !important;
     padding: 16px !important;
     gap: 12px !important;
   }
 
   /* Ajustar tamaño del video de apertura en mobile */
   .pack-video-container {
-    max-width: 90vh !important;
-    max-height: 80vw !important;
+    max-width: 90dvh !important;
+    max-height: 80dvw !important;
   }
 
   .pack-video {
-    max-height: 75vw !important;
+    max-height: 75dvw !important;
   }
 
   /* Rotar preloader de carga */
@@ -1348,8 +1393,8 @@ html, body {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
-    width: 100vh !important;
-    height: 100vw !important;
+    width: 100dvh !important;
+    height: 100dvw !important;
     transform: translate(-50%, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
   }
@@ -1361,8 +1406,8 @@ html, body {
     left: 50% !important;
     transform: translate(-50%, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
-    width: min(480px, 92vh) !important;
-    max-height: 82vw !important;
+    width: min(480px, 92dvh) !important;
+    max-height: 82dvw !important;
   }
 }
 
@@ -1546,7 +1591,7 @@ html, body {
 @media (max-width: 768px) and (orientation: portrait) {
   .music-toggle-btn {
     top: calc(50% + 50px) !important;
-    right: 16px !important;
+    right: calc(16px + env(safe-area-inset-bottom)) !important;
     left: auto !important;
     transform: translate(0, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
@@ -1816,7 +1861,9 @@ html, body {
   border-radius: 20px;
   padding: 32px;
   width: min(860px, 92vw);
+  width: min(860px, 92dvw);
   max-height: 80vh;
+  max-height: 80dvh;
   overflow-y: auto;
   box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
   display: flex;
@@ -2571,5 +2618,138 @@ html, body {
 .ranking-tab-panel {
   scrollbar-width: thin;
   scrollbar-color: #334155 #0f172a;
+}
+
+/* ==========================================================================
+   ── Advertencia de Dispositivo Móvil (Premium Modal)
+   ========================================================================== */
+.mobile-warning-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 14, 27, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100000; /* Por encima de preloader */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-ui, sans-serif);
+}
+
+.mobile-warning-overlay--visible {
+  opacity: 1;
+}
+
+.mobile-warning-card {
+  position: relative;
+  background: linear-gradient(160deg, #1e1b4b 0%, #0f172a 60%, #0d1321 100%);
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  border-radius: 28px;
+  padding: 40px 32px;
+  width: min(440px, 90vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.2),
+    0 40px 80px rgba(0, 0, 0, 0.8),
+    0 0 60px rgba(139, 92, 246, 0.25);
+  transform: scale(0.85);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mobile-warning-overlay--visible .mobile-warning-card {
+  transform: scale(1);
+}
+
+.mobile-warning-glow {
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, rgba(139, 92, 246, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mobile-warning-icon-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  z-index: 1;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+}
+
+.mobile-warning-content {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #f1f5f9;
+}
+
+.mobile-warning-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff 30%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mobile-warning-text {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.mobile-warning-tip {
+  font-size: 0.85rem;
+  color: #fb7185;
+  background: rgba(251, 113, 133, 0.15);
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(251, 113, 133, 0.25);
+  line-height: 1.4;
+  margin: 8px 0 0;
+}
+
+.mobile-warning-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: #ffffff;
+  border: none;
+  padding: 14px 36px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+  transition: all 0.25s ease;
+  z-index: 1;
+}
+
+.mobile-warning-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+}
+
+.mobile-warning-btn:active {
+  transform: translateY(1px);
 }
 

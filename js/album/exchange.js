@@ -170,13 +170,25 @@ function buildOfferCard(offer, myDupMap, userId) {
   }).join('');
 
   card.innerHTML = `
-    <div class="offer-card__user">${creatorName}</div>
-    <div class="offer-card__stickers">${offeringHtml}</div>
-    <div class="offer-card__arrow">⇄</div>
-    <div class="offer-card__stickers">${requestingHtml}</div>
-    <button class="offer-accept-btn" data-offer-id="${offer.id}" ${canAccept ? '' : 'disabled'}>
-      ${canAccept ? 'Aceptar' : 'No tienes'}
-    </button>
+    <div class="offer-card__header">
+      <span class="offer-card__user">👤 Publicado por: <strong>${creatorName}</strong></span>
+    </div>
+    <div class="offer-card__content">
+      <div class="offer-column offer-column--receive">
+        <span class="offer-column__label">Recibes:</span>
+        <div class="offer-column__stickers">${offeringHtml}</div>
+      </div>
+      <div class="offer-column__arrow">⇄</div>
+      <div class="offer-column offer-column--give">
+        <span class="offer-column__label">Das a cambio:</span>
+        <div class="offer-column__stickers">${requestingHtml}</div>
+      </div>
+    </div>
+    <div class="offer-card__action">
+      <button class="offer-accept-btn" data-offer-id="${offer.id}" ${canAccept ? '' : 'disabled'}>
+        ${canAccept ? 'Aceptar intercambio' : 'Te faltan laminitas'}
+      </button>
+    </div>
   `;
 
   card.querySelector('.offer-accept-btn')?.addEventListener('click', () => acceptOffer(offer.id));
@@ -240,17 +252,31 @@ async function renderMyOffers(body) {
       return `<span class="offer-chip">${emp?.name || '?'} <span class="offer-chip__qty">×${r.quantity || 1}</span></span>`;
     }).join('');
 
+    const statusText = offer.status === 'accepted' ? 'Aceptada' : 'Abierta';
     const statusBadge = offer.status === 'accepted'
       ? '<span class="offer-status offer-status--accepted">✓ Aceptada</span>'
       : '<span class="offer-status offer-status--open">Abierta</span>';
 
     div.innerHTML = `
-      <div class="offer-card__stickers">${offering}</div>
-      <div class="offer-card__arrow">⇄</div>
-      <div class="offer-card__stickers">${requesting}</div>
-      ${statusBadge}
+      <div class="offer-card__header">
+        <span class="offer-card__user">📋 Oferta publicada por mí (Estado: <strong>${statusText}</strong>)</span>
+        ${statusBadge}
+      </div>
+      <div class="offer-card__content">
+        <div class="offer-column offer-column--give">
+          <span class="offer-column__label">Entregas (das):</span>
+          <div class="offer-column__stickers">${offering}</div>
+        </div>
+        <div class="offer-column__arrow">⇄</div>
+        <div class="offer-column offer-column--receive">
+          <span class="offer-column__label">Recibes (pides):</span>
+          <div class="offer-column__stickers">${requesting}</div>
+        </div>
+      </div>
       ${offer.status === 'open'
-        ? `<button class="offer-cancel-btn" data-offer-id="${offer.id}">Cancelar</button>`
+        ? `<div class="offer-card__action">
+            <button class="offer-cancel-btn" data-offer-id="${offer.id}">Cancelar oferta</button>
+           </div>`
         : ''}
     `;
 
@@ -296,8 +322,8 @@ async function renderCreateForm(body) {
 
   body.innerHTML = `
     <div class="create-offer">
-      <div class="baul-filters" style="margin-bottom: var(--space-md); border-radius: 12px; border: 1px solid #334155;">
-        <div class="baul-search-wrapper">
+      <div class="baul-filters" style="margin-bottom: var(--space-md); border-radius: 12px; border: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 18px;">
+        <div class="baul-search-wrapper" style="max-width: 260px; flex: 1;">
           <span class="baul-search-icon">🔍</span>
           <input type="text" id="exchange-create-search" placeholder="Buscar por nombre..." class="baul-search-input" autocomplete="off" />
         </div>
@@ -306,20 +332,17 @@ async function renderCreateForm(body) {
           <button class="baul-filter-btn" data-rarity="common">Comunes</button>
           <button class="baul-filter-btn" data-rarity="rare">Míticas</button>
         </div>
+        <button class="create-offer__submit" id="btn-publish-trade" style="flex-shrink: 0; box-shadow: none; border-radius: 8px;">Publicar oferta</button>
       </div>
       
       <div class="create-offer__section">
         <label class="create-offer__label">📦 Ofrezco (mis repetidos)</label>
-        <div class="create-offer__grid" id="offering-grid" style="min-height: 124px;"></div>
+        <div class="create-offer__grid" id="offering-grid"></div>
       </div>
       
-      <div class="create-offer__section" style="margin-bottom: 80px;">
+      <div class="create-offer__section">
         <label class="create-offer__label">🎯 Pido (stickers que quiero)</label>
-        <div class="create-offer__grid" id="requesting-grid" style="min-height: 124px;"></div>
-      </div>
-      
-      <div class="create-offer__footer">
-        <button class="create-offer__submit" id="btn-publish-trade">Publicar oferta</button>
+        <div class="create-offer__grid" id="requesting-grid"></div>
       </div>
     </div>
   `;

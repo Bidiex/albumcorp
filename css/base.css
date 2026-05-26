@@ -101,6 +101,7 @@ body {
   color: var(--text-main);
   background: var(--bg-main);
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -281,6 +282,7 @@ h1, h2, h3, h4, h5, h6 {
 .auth-container {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -213,18 +213,67 @@ async function initAlbum() {
     openBtn.style.display = 'flex';
     
     openBtn.onclick = () => {
-      // Intentar reproducir música gracias a la interacción explícita del click
-      if (loadedAudio) {
-        loadedAudio.play().catch(err => console.log("Audio play bloqueado:", err));
-        window.__bgMusic = loadedAudio;
-        initMusicController();
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+      const startAlbum = () => {
+        // Intentar reproducir música gracias a la interacción explícita del click
+        if (loadedAudio) {
+          loadedAudio.play().catch(err => console.log("Audio play bloqueado:", err));
+          window.__bgMusic = loadedAudio;
+          initMusicController();
+        }
+        
+        // Animación de salida y remoción
+        preloader.classList.add('preloader--hidden');
+        setTimeout(() => preloader.remove(), 700);
+      };
+
+      if (isMobile) {
+        showMobileWarningModal(startAlbum);
+      } else {
+        startAlbum();
       }
-      
-      // Animación de salida y remoción
-      preloader.classList.add('preloader--hidden');
-      setTimeout(() => preloader.remove(), 700);
     };
   }
+}
+
+function showMobileWarningModal(onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'mobile-warning-overlay';
+  overlay.innerHTML = `
+    <div class="mobile-warning-card">
+      <div class="mobile-warning-glow" aria-hidden="true"></div>
+      <div class="mobile-warning-icon-wrap">📱</div>
+      <div class="mobile-warning-content">
+        <h2 class="mobile-warning-title">Experiencia Optimizada para PC</h2>
+        <p class="mobile-warning-text">
+          Este álbum cuenta con efectos visuales interactivos 3D, música envolvente y transiciones avanzadas diseñadas especialmente para pantallas de <strong>computador, laptop o pantallas grandes</strong>.
+        </p>
+        <p class="mobile-warning-tip">
+          💡 Si decides continuar en el móvil, te recomendamos usar tu dispositivo en <strong>posición horizontal</strong> para una mejor visualización.
+        </p>
+      </div>
+      <button class="mobile-warning-btn" id="btn-warning-continue">
+        Entendido, abrir de todos modos 📖
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Forzar reflow para la animación
+  requestAnimationFrame(() => {
+    overlay.classList.add('mobile-warning-overlay--visible');
+  });
+
+  const continueBtn = overlay.querySelector('#btn-warning-continue');
+  continueBtn.onclick = () => {
+    overlay.classList.remove('mobile-warning-overlay--visible');
+    setTimeout(() => {
+      overlay.remove();
+      onConfirm();
+    }, 350);
+  };
 }
 
 function initMusicController() {
