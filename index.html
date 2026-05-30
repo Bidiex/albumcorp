@@ -21,12 +21,21 @@
             <a href="/" class="navbar-logo">
                 🟢 AlbumCorp
             </a>
-            <div class="navbar-links">
-                <a href="#features" class="navbar-link">Características</a>
-                <a href="#steps" class="navbar-link">Cómo Funciona</a>
-            </div>
-            <div>
-                <a href="/login" class="btn btn-ghost btn-sm">Iniciar sesión</a>
+            
+            <button id="mobile-menu-toggle" class="navbar-toggle" aria-label="Abrir menú">
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+            </button>
+
+            <div id="navbar-menu" class="navbar-menu">
+                <div class="navbar-links">
+                    <a href="#features" class="navbar-link">Características</a>
+                    <a href="#steps" class="navbar-link">Cómo Funciona</a>
+                </div>
+                <div class="navbar-actions">
+                    <a href="/login" class="btn btn-ghost btn-sm">Iniciar sesión</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -34,60 +43,26 @@
     <!-- Hero Section -->
     <header class="landing-hero">
         <div class="landing-container">
-            <div class="hero-tagline">
-                ✨ Gamificación y cultura corporativa
-            </div>
             <h1 class="hero-title">
                 Fortalece la cultura de tu empresa coleccionando a tu equipo
             </h1>
             <p class="hero-subtitle">
-                Crea un álbum de figuritas digital personalizado para tus colaboradores. Fomenta la integración, celebra hitos y diviértete intercambiando repetidas.
+                Crea un álbum de figuritas digital personalizado para tus colaboradores. <strong>Fomenta la cultura organizacional.</strong>
             </p>
             <div class="hero-ctas">
                 <a href="/login?tab=register" class="btn btn-primary btn-lg">Comenzar gratis</a>
-                <a href="#demo" class="btn btn-secondary btn-lg">Probar demo</a>
             </div>
 
-            <!-- Demo Widget -->
-            <div id="demo" style="margin-top: 40px;">
-                <p class="demo-section-title">Abre un sobre de prueba</p>
-                <div class="demo-widget-container">
-                    <!-- Sealed Pack -->
-                    <div id="sealed-pack" class="sealed-pack">
-                        <div class="sealed-pack__logo">AlbumCorp</div>
-                        <div class="sealed-pack__badge">SOBRE DE PRUEBA</div>
-                        <div class="sealed-pack__hint">Haz clic para abrir</div>
-                    </div>
-
-                    <!-- Revealed Cards -->
-                    <div id="demo-stickers" class="demo-stickers">
-                        <!-- Card 1: Common -->
-                        <div class="demo-sticker-card demo-sticker-card--common">
-                            <div class="demo-sticker-card__photo">👩‍💼</div>
-                            <div class="demo-sticker-card__name">Elena Ruiz</div>
-                            <div class="demo-sticker-card__role">People & Culture</div>
-                            <div class="demo-sticker-card__badge">Común</div>
-                        </div>
-
-                        <!-- Card 2: Legendary -->
-                        <div class="demo-sticker-card demo-sticker-card--legendary">
-                            <div class="demo-sticker-card__photo">👑</div>
-                            <div class="demo-sticker-card__name">Sofía Herrera</div>
-                            <div class="demo-sticker-card__role">CEO & Fundadora</div>
-                            <div class="demo-sticker-card__badge">Legendaria</div>
-                        </div>
-
-                        <!-- Card 3: Rare -->
-                        <div class="demo-sticker-card demo-sticker-card--rare">
-                            <div class="demo-sticker-card__photo">👨‍💻</div>
-                            <div class="demo-sticker-card__name">Carlos Mendoza</div>
-                            <div class="demo-sticker-card__role">Tech Lead</div>
-                            <div class="demo-sticker-card__badge">Mítica</div>
-                        </div>
-                    </div>
-
-                    <!-- Reset Button -->
-                    <button id="btn-reset-demo" class="demo-reset-btn">Abre otro sobre</button>
+            <!-- Demo Widget / Ruleta -->
+            <div id="demo" style="margin-top: 40px; width: 100%;">
+                <p class="demo-section-title">Colecciona a tu equipo</p>
+                <div class="ruleta" id="ruleta">
+                    <div class="ruleta-card" style="background-image: url('/laminita1.webp');"></div>
+                    <div class="ruleta-card" style="background-image: url('/laminita2.webp');"></div>
+                    <div class="ruleta-card" style="background-image: url('/laminita3.webp');"></div>
+                    <div class="ruleta-card" style="background-image: url('/laminita4.webp');"></div>
+                    <div class="ruleta-card" style="background-image: url('/laminita5.webp');"></div>
+                    <div class="ruleta-card" style="background-image: url('/laminita6.webp');"></div>
                 </div>
             </div>
         </div>
@@ -172,7 +147,14 @@
     <footer class="landing-footer">
         <div class="landing-container">
             <div class="footer-logo">🟢 AlbumCorp</div>
-            <p class="footer-copy">© 2026 AlbumCorp. Todos los derechos reservados. Creado con amor para equipos excepcionales.</p>
+            <p class="footer-copy">
+                © 2026 AlbumCorp. Todos los derechos reservados. Barranquilla Colombia
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" width="16" height="11" class="colombia-flag" style="vertical-align: middle; margin-left: 4px; border-radius: 2px; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">
+                    <rect width="3" height="1" fill="#FCD116"/>
+                    <rect y="1" width="3" height="0.5" fill="#003893"/>
+                    <rect y="1.5" width="3" height="0.5" fill="#CE1126"/>
+                </svg>
+            </p>
         </div>
     </footer>
 
@@ -200,46 +182,55 @@
         }
         checkActiveSession();
 
-        // ── INTERACTIVE DEMO LOGIC ──
-        const sealedPack = document.getElementById('sealed-pack');
-        const demoStickers = document.getElementById('demo-stickers');
-        const btnResetDemo = document.getElementById('btn-reset-demo');
+        // ── RULETA ROTATIVA DE TARJETAS 3D ──
+        const ruleta = document.getElementById('ruleta');
+        if (ruleta) {
+            const cards = ruleta.querySelectorAll('.ruleta-card');
+            const totalCards = cards.length;
+            let theta = 0;
 
-        if (sealedPack) {
-            sealedPack.addEventListener('click', () => {
-                if (sealedPack.classList.contains('opening') || sealedPack.classList.contains('shaking')) return;
+            const rotateRuleta = () => {
+                cards.forEach((card, index) => {
+                    const angle = (360 / totalCards) * index + theta;
+                    card.style.transform = `rotateY(${angle}deg) translateZ(280px) rotateY(${-angle}deg)`;
+                    
+                    let normAngle = (angle % 360 + 360) % 360;
+                    if (normAngle > 180) normAngle -= 360;
+                    
+                    const distance = Math.abs(normAngle);
+                    if (distance > 90) {
+                        card.style.opacity = Math.max(0.25, 1 - (distance - 90) / 90);
+                    } else {
+                        card.style.opacity = 1;
+                    }
+                    card.style.zIndex = Math.round(100 - distance);
+                });
+            };
 
-                // 1. Shaking effect
-                sealedPack.classList.add('shaking');
-
-                // 2. Burst and reveal after shake
-                setTimeout(() => {
-                    sealedPack.classList.remove('shaking');
-                    sealedPack.classList.add('opening');
-
-                    // Show stickers container
-                    demoStickers.classList.add('visible');
-
-                    // Show reset button with delay after cards fan out
-                    setTimeout(() => {
-                        btnResetDemo.classList.add('visible');
-                    }, 1000);
-                }, 500);
-            });
+            rotateRuleta();
+            setInterval(() => {
+                theta -= 360 / totalCards;
+                rotateRuleta();
+            }, 3000);
         }
 
-        if (btnResetDemo) {
-            btnResetDemo.addEventListener('click', () => {
-                // Hide reset button
-                btnResetDemo.classList.remove('visible');
+        // ── MENÚ MÓVIL (HAMBURGUESA) ──
+        const menuToggle = document.getElementById('mobile-menu-toggle');
+        const navbarMenu = document.getElementById('navbar-menu');
+        
+        if (menuToggle && navbarMenu) {
+            menuToggle.addEventListener('click', () => {
+                menuToggle.classList.toggle('active');
+                navbarMenu.classList.toggle('active');
+            });
 
-                // Hide stickers
-                demoStickers.classList.remove('visible');
-
-                // Reset sealed pack after fade-out transition
-                setTimeout(() => {
-                    sealedPack.classList.remove('opening', 'shaking');
-                }, 300);
+            // Cerrar menú al hacer clic en cualquier enlace
+            const navLinks = navbarMenu.querySelectorAll('.navbar-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    menuToggle.classList.remove('active');
+                    navbarMenu.classList.remove('active');
+                });
             });
         }
     </script>
