@@ -80,6 +80,25 @@
         </button>
       </div>
     </div>
+  <!-- Modal de Configuración de Nombre de Empleado (Onboarding) -->
+  <div id="employee-name-modal" class="onboarding-overlay" style="display: none;">
+    <div class="onboarding-card">
+      <div class="onboarding-header">
+        <div class="onboarding-logo">👤 Tu Perfil</div>
+        <h2>¡Bienvenido al Álbum!</h2>
+        <p>Por favor, dinos tu nombre completo para que tus compañeros puedan reconocerte al intercambiar láminas.</p>
+      </div>
+      <form id="form-employee-name" class="onboarding-form">
+        <div class="form-group">
+          <label class="form-label" for="onboard-display-name">Tu Nombre Completo</label>
+          <input type="text" id="onboard-display-name" class="form-input" placeholder="Ej. Juan Pérez" required>
+        </div>
+        <button type="submit" id="btn-name-submit" class="btn btn-primary btn-lg w-full" style="justify-content: center; margin-top: var(--space-md);">
+          Comenzar a Coleccionar
+        </button>
+        <div id="name-feedback" class="feedback mt-md"></div>
+      </form>
+    </div>
   </div>
 
   <script type="module" src="/js/album/album.js"></script>

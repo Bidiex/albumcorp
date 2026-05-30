@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlbumCorp — Verificando...</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg-main);
+      margin: 0;
+    }
+    .callback-card {
+      text-align: center;
+      padding: 40px;
+      font-family: var(--font-body);
+      color: var(--text-main);
+    }
+    .callback-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border-light);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .callback-error {
+      color: var(--danger);
+      font-size: 0.9rem;
+      margin-top: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="callback-card">
+    <div class="callback-spinner"></div>
+    <p id="callback-status">Verificando tu cuenta...</p>
+    <p class="callback-error" id="callback-error"></p>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/core/supabase.js';
+
+    async function handleCallback() {
+      const status = document.getElementById('callback-status');
+      const errorEl = document.getElementById('callback-error');
+
+      try {
+        // Obtener sesión — Supabase la procesa automáticamente desde el hash
+        const { data: { session }, error: sessionError } = 
+          await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+          throw new Error('No se pudo verificar la sesión. Intenta de nuevo.');
+        }
+
+        // Leer parámetros del callback
+        const params = new URLSearchParams(window.location.search);
+        const type = params.get('type');
+        const companyId = params.get('company_id');
+        const slug = params.get('slug');
+
+        const user = session.user;
+
+        if (type === 'editor') {
+          // Flujo Editor: verificar si ya tiene perfil
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (profile) {
+            if (profile.role === 'editor') {
+              // Ya es editor — ir al panel (si company_id es null, el panel le pedirá onboarding)
+              window.location.href = '/editor';
+            } else if (profile.role === 'employee' && !profile.company_id) {
+              // Nuevo registro con Google: el trigger por defecto le asignó role='employee'.
+              // Como viene con type='editor', actualizamos su rol a 'editor'.
+              const { error: updateError } = await supabase
+                .from('user_profiles')
+                .update({ role: 'editor' })
+                .eq('id', user.id);
+              
+              if (updateError) throw updateError;
+              window.location.href = '/editor';
+            } else {
+              // Es un empleado activo en una empresa, no puede entrar como editor
+              throw new Error('Esta cuenta está registrada como empleado y no tiene acceso al panel de editor.');
+            }
+          } else {
+            // Si por algún motivo no se creó el perfil con el trigger, lo creamos ahora como editor sin empresa
+            const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+            const { error: insertError } = await supabase
+              .from('user_profiles')
+              .insert({
+                id: user.id,
+                role: 'editor',
+                display_name: displayName,
+                company_id: null
+              });
+
+            if (insertError) throw insertError;
+            window.location.href = '/editor';
+          }
+
+        } else if (type === 'employee' && companyId) {
+          // Flujo Empleado: verificar whitelist
+          status.textContent = 'Verificando acceso...';
+
+          const { data: isAllowed } = await supabase
+            .rpc('fn_check_email_allowed', {
+              p_email: user.email,
+              p_company_id: companyId
+            });
+
+          if (!isAllowed) {
+            // No autorizado — hacer signOut y redirigir al join
+            await supabase.auth.signOut();
+            const redirectSlug = slug || '';
+            window.location.href = 
+              `/join?slug=${redirectSlug}&error=not_authorized`;
+            return;
+          }
+
+          // Email autorizado — verificar si ya tiene perfil
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (!profile) {
+            // Crear perfil con el trigger o RPC
+            status.textContent = 'Creando tu cuenta...';
+            const displayName = user.user_metadata?.full_name ||
+                               user.email.split('@')[0];
+
+            const { error: rpcError } = await supabase.rpc('fn_register_employee', {
+              p_user_id: user.id,
+              p_company_id: companyId,
+              p_display_name: displayName
+            });
+
+            if (rpcError && !rpcError.message.includes('USER_ALREADY_REGISTERED')) {
+              throw rpcError;
+            }
+          }
+
+          // Verificar que el perfil pertenece a la empresa correcta
+          const { data: finalProfile } = await supabase
+            .from('user_profiles')
+            .select('company_id')
+            .eq('id', user.id)
+            .single();
+
+          if (finalProfile?.company_id !== companyId) {
+            await supabase.auth.signOut();
+            window.location.href = `/join?slug=${slug}&error=wrong_company`;
+            return;
+          }
+
+          window.location.href = '/album';
+
+        } else {
+          // Sin tipo — detectar por perfil existente
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+          if (profile?.role === 'editor') {
+            window.location.href = '/editor';
+          } else {
+            window.location.href = '/album';
+          }
+        }
+
+      } catch (err) {
+        console.error('Callback error:', err);
+        document.querySelector('.callback-spinner').style.display = 'none';
+        status.textContent = 'Ocurrió un error.';
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+        setTimeout(() => { window.location.href = '/login'; }, 3000);
+      }
+    }
+
+    handleCallback();
+  </script>
+</body>
+</html>

@@ -4,6 +4,8 @@
     { "source": "/editor", "destination": "/editor.html" },
     { "source": "/join", "destination": "/join.html" },
     { "source": "/exchange", "destination": "/exchange.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/auth/callback", "destination": "/auth-callback.html" },
     { "source": "/", "destination": "/index.html" }
   ]
 }

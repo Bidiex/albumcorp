@@ -2,25 +2,29 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   appType: 'mpa',
-  server: {
-    historyApiFallback: {
-      rewrites: [
-        { from: /^\/album$/, to: '/album.html' },
-        { from: /^\/editor$/, to: '/editor.html' },
-        { from: /^\/join$/, to: '/join.html' },
-        { from: /^\/exchange$/, to: '/exchange.html' },
-        { from: /^\/$/, to: '/index.html' },
-      ]
+  plugins: [
+    {
+      name: 'rewrite-middleware',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url && req.url.startsWith('/auth/callback')) {
+            req.url = req.url.replace('/auth/callback', '/auth-callback.html');
+          }
+          next();
+        });
+      }
     }
-  },
+  ],
   build: {
     rollupOptions: {
       input: {
-        main:     'index.html',
-        join:     'join.html',
-        album:    'album.html',
-        exchange: 'exchange.html',
-        editor:   'editor.html',
+        main:          'index.html',
+        login:         'login.html',
+        join:          'join.html',
+        album:         'album.html',
+        exchange:      'exchange.html',
+        editor:        'editor.html',
+        authCallback:  'auth-callback.html',
       }
     }
   }

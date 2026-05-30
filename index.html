@@ -4,137 +4,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlbumCorp</title>
+    <title>AlbumCorp — Álbum de Figuritas para tu Empresa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/landing.css">
 </head>
 
 <body>
-    <div id="app">
-        <div class="auth-container">
-            <div class="auth-card">
-                <div class="auth-logo">AlbumCorp</div>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-logo">
+                🟢 AlbumCorp
+            </a>
+            <div class="navbar-links">
+                <a href="#features" class="navbar-link">Características</a>
+                <a href="#steps" class="navbar-link">Cómo Funciona</a>
+            </div>
+            <div>
+                <a href="/login" class="btn btn-ghost btn-sm">Iniciar sesión</a>
+            </div>
+        </div>
+    </nav>
 
-                <div class="auth-tabs">
-                    <button id="tab-login" class="active">Iniciar sesión</button>
-                    <button id="tab-register">Soy Editor — Registrarme</button>
-                </div>
+    <!-- Hero Section -->
+    <header class="landing-hero">
+        <div class="landing-container">
+            <div class="hero-tagline">
+                ✨ Gamificación y cultura corporativa
+            </div>
+            <h1 class="hero-title">
+                Fortalece la cultura de tu empresa coleccionando a tu equipo
+            </h1>
+            <p class="hero-subtitle">
+                Crea un álbum de figuritas digital personalizado para tus colaboradores. Fomenta la integración, celebra hitos y diviértete intercambiando repetidas.
+            </p>
+            <div class="hero-ctas">
+                <a href="/login?tab=register" class="btn btn-primary btn-lg">Comenzar gratis</a>
+                <a href="#demo" class="btn btn-secondary btn-lg">Probar demo</a>
+            </div>
 
-                <!-- Formulario Login -->
-                <form id="form-login" class="auth-form">
-                    <input type="email" id="login-email" placeholder="Email" required>
-                    <input type="password" id="login-password" placeholder="Contraseña" required>
-                    <button type="submit" id="btn-login" class="btn-primary">Entrar</button>
-                    <div id="login-error" class="auth-error"></div>
-                </form>
+            <!-- Demo Widget -->
+            <div id="demo" style="margin-top: 40px;">
+                <p class="demo-section-title">Abre un sobre de prueba</p>
+                <div class="demo-widget-container">
+                    <!-- Sealed Pack -->
+                    <div id="sealed-pack" class="sealed-pack">
+                        <div class="sealed-pack__logo">AlbumCorp</div>
+                        <div class="sealed-pack__badge">SOBRE DE PRUEBA</div>
+                        <div class="sealed-pack__hint">Haz clic para abrir</div>
+                    </div>
 
-                <!-- Formulario Registro -->
-                <form id="form-register" class="auth-form" hidden>
-                    <input type="text" id="reg-name" placeholder="Nombre completo" required>
-                    <input type="text" id="reg-company" placeholder="Nombre de tu empresa" required>
-                    <input type="email" id="reg-email" placeholder="Email" required>
-                    <input type="password" id="reg-password" placeholder="Contraseña" required>
-                    <button type="submit" id="btn-register" class="btn-primary">Crear cuenta</button>
-                    <div id="register-error" class="auth-error"></div>
-                </form>
+                    <!-- Revealed Cards -->
+                    <div id="demo-stickers" class="demo-stickers">
+                        <!-- Card 1: Common -->
+                        <div class="demo-sticker-card demo-sticker-card--common">
+                            <div class="demo-sticker-card__photo">👩‍💼</div>
+                            <div class="demo-sticker-card__name">Elena Ruiz</div>
+                            <div class="demo-sticker-card__role">People & Culture</div>
+                            <div class="demo-sticker-card__badge">Común</div>
+                        </div>
 
-                <div class="auth-footer">
-                    ¿Eres empleado? Usa el link que te envió tu empresa
+                        <!-- Card 2: Legendary -->
+                        <div class="demo-sticker-card demo-sticker-card--legendary">
+                            <div class="demo-sticker-card__photo">👑</div>
+                            <div class="demo-sticker-card__name">Sofía Herrera</div>
+                            <div class="demo-sticker-card__role">CEO & Fundadora</div>
+                            <div class="demo-sticker-card__badge">Legendaria</div>
+                        </div>
+
+                        <!-- Card 3: Rare -->
+                        <div class="demo-sticker-card demo-sticker-card--rare">
+                            <div class="demo-sticker-card__photo">👨‍💻</div>
+                            <div class="demo-sticker-card__name">Carlos Mendoza</div>
+                            <div class="demo-sticker-card__role">Tech Lead</div>
+                            <div class="demo-sticker-card__badge">Mítica</div>
+                        </div>
+                    </div>
+
+                    <!-- Reset Button -->
+                    <button id="btn-reset-demo" class="demo-reset-btn">Abre otro sobre</button>
                 </div>
             </div>
         </div>
-    </div>
+    </header>
 
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="landing-container">
+            <div class="section-header">
+                <div class="section-tag">Todo en uno</div>
+                <h2 class="section-title">Diseñado para crear conexiones reales</h2>
+            </div>
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon">📖</div>
+                    <h3 class="feature-title">Álbum Digital</h3>
+                    <p class="feature-desc">Un álbum virtual interactivo con física de pase de páginas que hace que coleccionar se sienta real y satisfactorio.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🎁</div>
+                    <h3 class="feature-title">Sobres y Misiones</h3>
+                    <p class="feature-desc">Los colaboradores reciben sobres diarios o semanales. Completa retos y gana sobres adicionales para avanzar en tu álbum.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🧳</div>
+                    <h3 class="feature-title">Centro de Intercambio</h3>
+                    <p class="feature-desc">Un baúl dedicado para tus duplicados. Crea ofertas e intercambia láminas con tus compañeros de forma segura y sencilla.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3 class="feature-title">Gamificación y Medallas</h3>
+                    <p class="feature-desc">Tabla de posiciones en tiempo real, medallas por completar departamentos enteros y laminitas legendarias de edición especial.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="steps" class="how-it-works-section">
+        <div class="landing-container">
+            <div class="section-header">
+                <div class="section-tag">Paso a paso</div>
+                <h2 class="section-title">Lanzar tu álbum es sumamente simple</h2>
+            </div>
+            <div class="steps-container">
+                <!-- Step 1 -->
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Registra tu empresa</h3>
+                    <p class="step-desc">Crea tu cuenta de administrador en segundos y define el dominio de correo corporativo para habilitar el acceso a tus colaboradores.</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Carga tu equipo</h3>
+                    <p class="step-desc">Sube la lista de colaboradores con su nombre, rol y foto. Nuestro sistema convertirá automáticamente cada perfil en una figurita coleccionable.</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">¡A coleccionar!</h3>
+                    <p class="step-desc">Envía el enlace de acceso. Tus colaboradores podrán iniciar sesión con Google o email, abrir sobres e interactuar en tiempo real.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-banner">
+        <div class="landing-container">
+            <h2 class="cta-title">¿Listo para conectar a tu equipo?</h2>
+            <p class="cta-desc">Lanza AlbumCorp hoy mismo y dale a tus colaboradores una experiencia que recordarán y compartirán.</p>
+            <a href="/login?tab=register" class="btn btn-primary btn-lg">Comenzar gratis ahora</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="landing-container">
+            <div class="footer-logo">🟢 AlbumCorp</div>
+            <p class="footer-copy">© 2026 AlbumCorp. Todos los derechos reservados. Creado con amor para equipos excepcionales.</p>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
     <script type="module">
-        import { loginUser, registerEditor, getSession, getCurrentProfile } from './js/core/auth.js';
+        import { getSession, getCurrentProfile } from './js/core/auth.js';
 
-        // Elementos DOM
-        const tabLogin = document.getElementById('tab-login');
-        const tabRegister = document.getElementById('tab-register');
-        const formLogin = document.getElementById('form-login');
-        const formRegister = document.getElementById('form-register');
-        const btnLogin = document.getElementById('btn-login');
-        const btnRegister = document.getElementById('btn-register');
-        const loginError = document.getElementById('login-error');
-        const registerError = document.getElementById('register-error');
-
-        // Al cargar: verificar sesión activa
-        window.addEventListener('load', async () => {
-            const session = await getSession();
-            if (session) {
-                const profile = await getCurrentProfile();
-                if (profile) {
-                    window.location.href = profile.role === 'editor' ? '/editor' : '/album';
+        // ── VERIFICACIÓN DE SESIÓN ACTIVA (REDIRECCIÓN INMEDIATA) ──
+        async function checkActiveSession() {
+            try {
+                const session = await getSession();
+                if (session) {
+                    const profile = await getCurrentProfile();
+                    if (profile) {
+                        if (profile.role === 'editor') {
+                            window.location.href = '/editor';
+                        } else if (profile.role === 'employee' && profile.company_id) {
+                            window.location.href = '/album';
+                        }
+                    }
                 }
+            } catch (err) {
+                console.warn('Session check error:', err);
             }
-        });
+        }
+        checkActiveSession();
 
-        // Tab Switching
-        tabLogin.addEventListener('click', () => {
-            tabLogin.classList.add('active');
-            tabRegister.classList.remove('active');
-            formLogin.hidden = false;
-            formRegister.hidden = true;
-        });
+        // ── INTERACTIVE DEMO LOGIC ──
+        const sealedPack = document.getElementById('sealed-pack');
+        const demoStickers = document.getElementById('demo-stickers');
+        const btnResetDemo = document.getElementById('btn-reset-demo');
 
-        tabRegister.addEventListener('click', () => {
-            tabRegister.classList.add('active');
-            tabLogin.classList.remove('active');
-            formRegister.hidden = false;
-            formLogin.hidden = true;
-        });
+        if (sealedPack) {
+            sealedPack.addEventListener('click', () => {
+                if (sealedPack.classList.contains('opening') || sealedPack.classList.contains('shaking')) return;
 
-        // Manejo de Login
-        formLogin.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+                // 1. Shaking effect
+                sealedPack.classList.add('shaking');
 
-            try {
-                loginError.classList.remove('visible');
-                btnLogin.disabled = true;
-                btnLogin.textContent = 'Cargando...';
+                // 2. Burst and reveal after shake
+                setTimeout(() => {
+                    sealedPack.classList.remove('shaking');
+                    sealedPack.classList.add('opening');
 
-                await loginUser(email, password);
-                const profile = await getCurrentProfile();
-                window.location.href = profile.role === 'editor' ? '/editor' : '/album';
-            } catch (error) {
-                loginError.textContent = error.message;
-                loginError.classList.add('visible');
-            } finally {
-                btnLogin.disabled = false;
-                btnLogin.textContent = 'Entrar';
-            }
-        });
+                    // Show stickers container
+                    demoStickers.classList.add('visible');
 
-        // Manejo de Registro
-        formRegister.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('reg-name').value.trim();
-            const company = document.getElementById('reg-company').value.trim();
-            const email = document.getElementById('reg-email').value.trim();
-            const password = document.getElementById('reg-password').value;
+                    // Show reset button with delay after cards fan out
+                    setTimeout(() => {
+                        btnResetDemo.classList.add('visible');
+                    }, 1000);
+                }, 500);
+            });
+        }
 
-            try {
-                registerError.classList.remove('visible');
-                btnRegister.disabled = true;
-                btnRegister.textContent = 'Cargando...';
+        if (btnResetDemo) {
+            btnResetDemo.addEventListener('click', () => {
+                // Hide reset button
+                btnResetDemo.classList.remove('visible');
 
-                // Usamos el nombre del editor y el de la empresa
-                await registerEditor(name, company, email, password);
-                window.location.href = '/editor';
-            } catch (error) {
-                registerError.textContent = error.message;
-                registerError.classList.add('visible');
-            } finally {
-                btnRegister.disabled = false;
-                btnRegister.textContent = 'Crear cuenta';
-            }
-        });
+                // Hide stickers
+                demoStickers.classList.remove('visible');
+
+                // Reset sealed pack after fade-out transition
+                setTimeout(() => {
+                    sealedPack.classList.remove('opening', 'shaking');
+                }, 300);
+            });
+        }
     </script>
 </body>
 

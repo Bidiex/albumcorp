@@ -5,6 +5,7 @@
 import { supabase } from '../core/supabase.js';
 import { guardRoute, logoutUser } from '../core/auth.js';
 import { initThemeEditor } from './theme-editor.js';
+import * as XLSX from 'xlsx';
 
 // ── Estado global de la sesión ──
 let profile = null;
@@ -24,27 +25,138 @@ async function init() {
 
   companyId = profile.company_id;
 
-  // Ocultar loading, mostrar app
-  $('loading-overlay').style.display = 'none';
-  $('app').style.display = 'flex';
+  let needsOnboarding = false;
+  let companyName = '';
+  let companySlug = '';
 
-  // Poblar UI de sesión
-  const name = profile.display_name || 'Editor';
-  $('sidebar-user-name').textContent = name;
-  $('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
+  if (!companyId) {
+    needsOnboarding = true;
+  } else {
+    // Cargar nombre empresa
+    const { data: company } = await supabase
+      .from('companies')
+      .select('name, slug')
+      .eq('id', companyId)
+      .single();
 
-  // Cargar nombre empresa
-  const { data: company } = await supabase
-    .from('companies')
-    .select('name, slug')
-    .eq('id', companyId)
-    .single();
-
-  if (company) {
-    $('sidebar-company-name').textContent = company.name;
-    $('join-link').textContent = `${location.origin}/join.html?slug=${company.slug}`;
+    if (!company || company.name === 'Mi Empresa' || !company.name.trim()) {
+      needsOnboarding = true;
+      if (company) {
+        companyName = company.name;
+        companySlug = company.slug;
+      }
+    } else {
+      companyName = company.name;
+      companySlug = company.slug;
+    }
   }
 
+  if (needsOnboarding) {
+    // Mostrar modal bloqueante y configurar el submit
+    $('loading-overlay').style.display = 'none';
+    $('onboarding-modal').style.display = 'flex';
+    
+    // Rellenar con datos actuales si existen y son diferentes a los provisionales
+    $('onboard-editor-name').value = (profile.display_name && profile.display_name !== profile.email) ? profile.display_name : '';
+    if (companyName && companyName !== 'Mi Empresa') {
+      $('onboard-company-name').value = companyName;
+    }
+
+    $('form-onboarding').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const onboardBtn = $('btn-onboard-submit');
+      const onboardFeedback = $('onboard-feedback');
+      const inputEditorName = $('onboard-editor-name').value.trim();
+      const inputCompanyName = $('onboard-company-name').value.trim();
+
+      if (!inputEditorName || !inputCompanyName) {
+        showFeedback('onboard-feedback', 'Todos los campos son obligatorios.', 'error');
+        return;
+      }
+
+      onboardBtn.disabled = true;
+      onboardBtn.textContent = '⏳ Configurando...';
+
+      try {
+        let finalCompanyId = companyId;
+        const slug = inputCompanyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+        if (!finalCompanyId) {
+          // Usar la RPC fn_register_editor para crear la empresa y asociar el perfil atómicamente
+          const { data: regData, error: regError } = await supabase.rpc('fn_register_editor', {
+            p_company_name: inputCompanyName,
+            p_editor_name: inputEditorName,
+            p_user_id: profile.id
+          });
+
+          if (regError) throw regError;
+          finalCompanyId = regData.company_id;
+          companyName = regData.company_name;
+          companySlug = regData.slug;
+
+        } else {
+          // Ya tiene company_id pero el nombre era provisional
+          const { error: companyUpdateErr } = await supabase
+            .from('companies')
+            .update({ name: inputCompanyName, slug })
+            .eq('id', finalCompanyId);
+
+          if (companyUpdateErr) throw companyUpdateErr;
+          companyName = inputCompanyName;
+          companySlug = slug;
+
+          const { error: profileError } = await supabase
+            .from('user_profiles')
+            .update({ display_name: inputEditorName })
+            .eq('id', profile.id);
+
+          if (profileError) throw profileError;
+        }
+
+        // Actualizar variables de sesión locales
+        companyId = finalCompanyId;
+        profile.display_name = inputEditorName;
+
+        // Ocultar modal, mostrar app
+        $('onboarding-modal').style.display = 'none';
+        $('app').style.display = 'flex';
+
+        // Poblar UI de sesión
+        $('sidebar-user-name').textContent = inputEditorName;
+        $('sidebar-avatar').textContent = inputEditorName.charAt(0).toUpperCase();
+        $('sidebar-company-name').textContent = companyName;
+        $('join-link').textContent = `${location.origin}/join.html?slug=${companySlug}`;
+
+        // Continuar inicialización normal
+        await continueInit();
+
+      } catch (err) {
+        console.error('Error en onboarding:', err);
+        showFeedback('onboard-feedback', err.message || 'Error al guardar la configuración.', 'error');
+      } finally {
+        onboardBtn.disabled = false;
+        onboardBtn.textContent = 'Guardar y Activar Panel';
+      }
+    });
+
+  } else {
+    // Si no necesita onboarding, continuar inicio normal
+    // Ocultar loading, mostrar app
+    $('loading-overlay').style.display = 'none';
+    $('app').style.display = 'flex';
+
+    // Poblar UI de sesión
+    const name = profile.display_name || 'Editor';
+    $('sidebar-user-name').textContent = name;
+    $('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
+    $('sidebar-company-name').textContent = companyName;
+    $('join-link').textContent = `${location.origin}/join.html?slug=${companySlug}`;
+
+    await continueInit();
+  }
+}
+
+async function continueInit() {
   // Configurar navegación
   setupNav();
 
@@ -810,6 +922,9 @@ function setupAccesos() {
   document.getElementById('btn-add-email')
     ?.addEventListener('click', addEmail);
 
+  document.getElementById('btn-import-xlsx')
+    ?.addEventListener('click', importAllowedEmailsFromXlsx);
+
   document.querySelectorAll('.accesos-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       // Determinar el scope: tabs de #section-accesos o #section-ranking
@@ -890,24 +1005,127 @@ function renderAccesosList(data) {
     return;
   }
 
-  list.innerHTML = '';
+  list.innerHTML = `
+    <div class="emails-table-container">
+      <table class="emails-table">
+        <thead>
+          <tr>
+            <th>Correo electrónico</th>
+            <th>Nombre / Estado</th>
+            <th class="actions">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="emails-table-body">
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const tbody = document.getElementById('emails-table-body');
   data.forEach(({ id, email, display_name, is_registered }) => {
-    const row = document.createElement('div');
-    row.className = 'email-row';
-    row.innerHTML = `
-      <div class="email-row__info">
-        <span class="email-row__text">${email}</span>
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="email-row__text" style="font-weight: 500;">${email}</span></td>
+      <td>
         <span class="email-row__name ${is_registered ? 'email-row__name--registered' : 'email-row__name--pending'}">
-          ${is_registered ? display_name : 'Sin registrar'}
+          ${is_registered ? `🟢 ${display_name}` : '⏳ Sin registrar'}
         </span>
-      </div>
-      <button class="btn btn-ghost btn-sm email-row__delete"
-        data-id="${id}">✕</button>
+      </td>
+      <td class="actions">
+        <button class="email-row__delete" data-id="${id}">✕</button>
+      </td>
     `;
-    row.querySelector('.email-row__delete')
+    tr.querySelector('.email-row__delete')
       .addEventListener('click', () => deleteEmail(id));
-    list.appendChild(row);
+    tbody.appendChild(tr);
   });
+}
+
+async function importAllowedEmailsFromXlsx() {
+  const fileInput = document.getElementById('input-xlsx-file');
+  const btn = document.getElementById('btn-import-xlsx');
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    showFeedback('accesos-feedback', 'Por favor, selecciona un archivo Excel (.xlsx o .xls).', 'error');
+    return;
+  }
+
+  const file = fileInput.files[0];
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = '⏳ Importando...';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      if (workbook.SheetNames.length === 0) {
+        throw new Error('El archivo Excel está vacío.');
+      }
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const emails = [];
+      
+      json.forEach(row => {
+        if (row && row[0]) {
+          const email = String(row[0]).trim().toLowerCase();
+          if (email && email.includes('@') && email.split('@')[1].includes('.')) {
+            emails.push(email);
+          }
+        }
+      });
+
+      if (emails.length === 0) {
+        showFeedback('accesos-feedback', 'No se encontraron correos válidos en la columna A.', 'error');
+        btn.disabled = false;
+        btn.textContent = originalText;
+        return;
+      }
+
+      // Check against existing emails
+      const existingEmails = new Set(_accesosData.map(d => d.email.toLowerCase().trim()));
+      const newEmails = [...new Set(emails.filter(email => !existingEmails.has(email)))];
+
+      if (newEmails.length === 0) {
+        showFeedback('accesos-feedback', 'Todos los correos válidos del archivo ya están autorizados.', 'warning');
+        btn.disabled = false;
+        btn.textContent = originalText;
+        fileInput.value = '';
+        return;
+      }
+
+      const payloads = newEmails.map(email => ({
+        company_id: companyId,
+        email
+      }));
+
+      const { error } = await supabase
+        .from('allowed_emails')
+        .insert(payloads);
+
+      if (error) throw error;
+
+      showFeedback('accesos-feedback', `✓ Se importaron ${newEmails.length} correos correctamente.`, 'success');
+      fileInput.value = '';
+      loadAccesos();
+
+    } catch (err) {
+      showFeedback('accesos-feedback', 'Error al leer/guardar el archivo: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  };
+
+  reader.onerror = () => {
+    showFeedback('accesos-feedback', 'Error al leer el archivo.', 'error');
+    btn.disabled = false;
+    btn.textContent = originalText;
+  };
+
+  reader.readAsArrayBuffer(file);
 }
 
 async function addEmail() {
@@ -1007,6 +1225,8 @@ async function loadLegendariesForGrant() {
   });
 }
 
+let _grantsData = [];
+
 async function loadGrantsList() {
   const list = document.getElementById('grants-list');
   if (!list) return;
@@ -1016,31 +1236,75 @@ async function loadGrantsList() {
     .rpc('fn_get_grants_list', { p_company_id: companyId });
 
   if (error || !data || data.length === 0) {
+    _grantsData = [];
     list.innerHTML = '<p class="empty-state">No hay legendarias otorgadas aún.</p>';
     return;
   }
 
-  list.innerHTML = '';
+  _grantsData = data;
+  renderGrantsList(data);
+
+  // Conectar buscador
+  const searchInput = document.getElementById('input-search-grant');
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = '1';
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const filtered = q
+        ? _grantsData.filter(d =>
+            (d.employee_name && d.employee_name.toLowerCase().includes(q)) ||
+            (d.user_display_name && d.user_display_name.toLowerCase().includes(q))
+          )
+        : _grantsData;
+      renderGrantsList(filtered);
+    });
+  }
+}
+
+function renderGrantsList(data) {
+  const list = document.getElementById('grants-list');
+  if (!list) return;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p class="empty-state">Sin resultados.</p>';
+    return;
+  }
+
+  list.innerHTML = `
+    <div class="emails-table-container">
+      <table class="emails-table">
+        <thead>
+          <tr>
+            <th>Laminita Legendaria</th>
+            <th>Otorgada a</th>
+            <th>Fecha de Asignación</th>
+            <th class="actions" style="text-align: right;">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="grants-table-body">
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const tbody = document.getElementById('grants-table-body');
   data.forEach(grant => {
-    const row = document.createElement('div');
-    row.className = 'email-row';
-    row.innerHTML = `
-      <div class="email-row__info">
-        <span class="email-row__text">
-          ${grant.employee_name || '?'} → 
-          ${grant.user_display_name || '?'}
-        </span>
-        <span class="email-row__name email-row__name--pending">
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span style="font-weight: 600; color: var(--warning-dark);">⭐ ${grant.employee_name || '?'}</span></td>
+      <td><span style="font-weight: 500;">👤 ${grant.user_display_name || '?'}</span></td>
+      <td>
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">
           ${new Date(grant.granted_at).toLocaleDateString('es-CO')}
         </span>
-      </div>
-      <button class="btn btn-ghost btn-sm email-row__delete" 
-        data-id="${grant.id}">✕</button>
+      </td>
+      <td class="actions" style="text-align: right;">
+        <button class="email-row__delete" style="padding: 4px 8px; box-shadow: none;" data-id="${grant.id}">✕</button>
+      </td>
     `;
-    row.querySelector('.email-row__delete')
-      .addEventListener('click', () => revokeGrant(grant.id,
-        grant.employee_id, grant.user_id));
-    list.appendChild(row);
+    tr.querySelector('.email-row__delete')
+      .addEventListener('click', () => revokeGrant(grant.id, grant.employee_id, grant.user_id));
+    tbody.appendChild(tr);
   });
 }
 
@@ -1086,6 +1350,8 @@ function setupGrants() {
     ?.addEventListener('click', grantLegendary);
 }
 
+let _rankingData = [];
+
 async function loadEditorRanking() {
   const list = document.getElementById('editor-ranking-list');
   if (!list) return;
@@ -1095,29 +1361,73 @@ async function loadEditorRanking() {
     .rpc('fn_get_ranking', { p_company_id: companyId });
 
   if (error || !data || data.length === 0) {
+    _rankingData = [];
     list.innerHTML = '<p class="empty-state">Sin datos aún.</p>';
     return;
   }
 
-  list.innerHTML = '';
-  data.forEach(entry => {
-    const row = document.createElement('div');
-    row.className = 'email-row';
+  _rankingData = data;
+  renderEditorRankingList(data);
 
+  // Conectar buscador
+  const searchInput = document.getElementById('input-search-ranking');
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = '1';
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const filtered = q
+        ? _rankingData.filter(d =>
+            d.display_name && d.display_name.toLowerCase().includes(q)
+          )
+        : _rankingData;
+      renderEditorRankingList(filtered);
+    });
+  }
+}
+
+function renderEditorRankingList(data) {
+  const list = document.getElementById('editor-ranking-list');
+  if (!list) return;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p class="empty-state">Sin resultados.</p>';
+    return;
+  }
+
+  list.innerHTML = `
+    <div class="emails-table-container">
+      <table class="emails-table">
+        <thead>
+          <tr>
+            <th style="width: 100px;">Posición</th>
+            <th>Nombre del Empleado</th>
+            <th style="text-align: right;">Laminitas Coleccionadas</th>
+          </tr>
+        </thead>
+        <tbody id="ranking-table-body">
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const tbody = document.getElementById('ranking-table-body');
+  data.forEach(entry => {
+    const tr = document.createElement('tr');
     const medal =
       entry.position == 1 ? '🥇' :
       entry.position == 2 ? '🥈' :
       entry.position == 3 ? '🥉' : `#${entry.position}`;
 
-    row.innerHTML = `
-      <div class="email-row__info">
-        <span class="email-row__text">${medal} ${entry.display_name}</span>
-        <span class="email-row__name email-row__name--registered">
+    tr.innerHTML = `
+      <td><span style="font-family: var(--font-heading); font-weight: 800; font-size: 1.05rem;">${medal}</span></td>
+      <td><span style="font-weight: 500;">${entry.display_name}</span></td>
+      <td style="text-align: right;">
+        <span class="badge badge-rare" style="color: var(--primary-dark); background: var(--surface-soft); border-color: var(--primary); font-size: 0.85rem; font-weight: 800; display: inline-flex;">
           ${entry.stickers_count} laminitas
         </span>
-      </div>
+      </td>
     `;
-    list.appendChild(row);
+    tbody.appendChild(tr);
   });
 }
 
@@ -1355,6 +1665,8 @@ function confirmAction(message, onConfirm) {
 // Expose confirmAction globally so theme-editor.js can use it for row deletions
 window.__confirmAction = confirmAction;
 
+let _accessRequestsData = [];
+
 async function loadAccessRequests() {
   const list = document.getElementById('solicitudes-list');
   if (!list) return;
@@ -1364,6 +1676,7 @@ async function loadAccessRequests() {
     .rpc('fn_get_access_requests', { p_company_id: companyId });
 
   if (error || !data || data.length === 0) {
+    _accessRequestsData = [];
     list.innerHTML = '<p class="empty-state">No hay solicitudes pendientes.</p>';
     updateSolicitudesBadge(0);
     return;
@@ -1372,37 +1685,87 @@ async function loadAccessRequests() {
   const pending = data.filter(r => r.status === 'pending');
   updateSolicitudesBadge(pending.length);
 
-  list.innerHTML = '';
+  _accessRequestsData = data;
+  renderAccessRequestsList(data);
+
+  // Conectar buscador
+  const searchInput = document.getElementById('input-search-request');
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = '1';
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const filtered = q
+        ? _accessRequestsData.filter(d =>
+            d.email.toLowerCase().includes(q)
+          )
+        : _accessRequestsData;
+      renderAccessRequestsList(filtered);
+    });
+  }
+}
+
+function renderAccessRequestsList(data) {
+  const list = document.getElementById('solicitudes-list');
+  if (!list) return;
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p class="empty-state">Sin resultados.</p>';
+    return;
+  }
+
+  list.innerHTML = `
+    <div class="emails-table-container">
+      <table class="emails-table">
+        <thead>
+          <tr>
+            <th>Correo electrónico</th>
+            <th>Fecha Solicitud</th>
+            <th>Estado</th>
+            <th class="actions" style="text-align: right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="solicitudes-table-body">
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const tbody = document.getElementById('solicitudes-table-body');
   data.forEach(req => {
     const isPending = req.status === 'pending';
-    const row = document.createElement('div');
-    row.className = 'email-row';
-    row.innerHTML = `
-      <div class="email-row__info">
-        <span class="email-row__text">${req.email}</span>
-        <span class="email-row__name ${isPending ? 'email-row__name--pending' : 'email-row__name--registered'}">
-          ${isPending ? '⏳ Pendiente' : req.status === 'approved' ? '✓ Aprobada' : '✗ Rechazada'}
-          · ${new Date(req.requested_at).toLocaleDateString('es-CO')}
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="email-row__text" style="font-weight: 500;">${req.email}</span></td>
+      <td>
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">
+          ${new Date(req.requested_at).toLocaleDateString('es-CO')}
         </span>
-      </div>
-      ${isPending ? `
-        <div style="display:flex; gap:6px; flex-shrink:0;">
-          <button class="btn btn-primary btn-sm req-approve" 
-            data-id="${req.id}" data-email="${req.email}"
-            style="padding:4px 12px; font-size:0.8rem;">
-            ✓
-          </button>
-          <button class="btn btn-ghost btn-sm req-reject"
-            data-id="${req.id}"
-            style="padding:4px 12px; font-size:0.8rem; color:var(--danger);">
-            ✗
-          </button>
-        </div>
-      ` : ''}
+      </td>
+      <td>
+        <span class="email-row__name ${isPending ? 'email-row__name--pending' : 'email-row__name--registered'}">
+          ${isPending ? '⏳ Pendiente' : req.status === 'approved' ? '🟢 Aprobada' : '🔴 Rechazada'}
+        </span>
+      </td>
+      <td class="actions" style="text-align: right;">
+        ${isPending ? `
+          <div style="display:inline-flex; gap:6px; justify-content: flex-end;">
+            <button class="btn btn-primary btn-sm req-approve" 
+              data-id="${req.id}" data-email="${req.email}"
+              style="padding:4px 10px; font-size:0.8rem; box-shadow: none;">
+              ✓
+            </button>
+            <button class="btn btn-ghost btn-sm req-reject"
+              data-id="${req.id}"
+              style="padding:4px 10px; font-size:0.8rem; color:var(--danger); box-shadow: none;">
+              ✕
+            </button>
+          </div>
+        ` : '—'}
+      </td>
     `;
 
     if (isPending) {
-      row.querySelector('.req-approve').addEventListener('click', async (e) => {
+      tr.querySelector('.req-approve').addEventListener('click', async (e) => {
         const id = e.currentTarget.dataset.id;
         const email = e.currentTarget.dataset.email;
         const { error } = await supabase.rpc('fn_approve_access_request', {
@@ -1415,7 +1778,7 @@ async function loadAccessRequests() {
         }
       });
 
-      row.querySelector('.req-reject').addEventListener('click', async (e) => {
+      tr.querySelector('.req-reject').addEventListener('click', async (e) => {
         const id = e.currentTarget.dataset.id;
         const { error } = await supabase.rpc('fn_reject_access_request', {
           p_request_id: id
@@ -1424,7 +1787,7 @@ async function loadAccessRequests() {
       });
     }
 
-    list.appendChild(row);
+    tbody.appendChild(tr);
   });
 }
 

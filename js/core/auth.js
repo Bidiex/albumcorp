@@ -3,31 +3,23 @@ import { supabase } from './supabase.js';
 /**
  * Registra un nuevo editor y crea su empresa
  */
-export async function registerEditor(editorName, companyName, email, password) {
-  // 1. Registrar usuario con metadata inicial
+export async function registerEditor(email, password) {
+  // Registrar usuario en auth pasándole únicamente el rol 'editor'
+  // Al no enviarle company_id, el trigger de Supabase creará el perfil de usuario con company_id = null.
+  // Esto obligará a realizar el onboarding de empresa en el primer ingreso al panel.
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        role: 'editor',
-        display_name: editorName
+        role: 'editor'
       }
     }
   });
 
   if (authError) throw authError;
 
-  // 2. Usar RPC para crear empresa y actualizar perfil de forma segura
-  const { data: rpcData, error: rpcError } = await supabase.rpc('fn_register_editor', {
-    p_company_name: companyName,
-    p_editor_name: editorName,
-    p_user_id: authData.user.id
-  });
-
-  if (rpcError) throw rpcError;
-
-  return { user: authData.user, company: rpcData };
+  return { user: authData.user };
 }
 
 /**
@@ -93,13 +85,13 @@ export async function getCurrentProfile() {
 export async function guardRoute(allowedRoles = []) {
   const session = await getSession();
   if (!session) {
-    window.location.href = '/';
+    window.location.href = '/login';
     return null;
   }
 
   const profile = await getCurrentProfile();
   if (!profile) {
-    window.location.href = '/';
+    window.location.href = '/login';
     return null;
   }
 
@@ -109,4 +101,33 @@ export async function guardRoute(allowedRoles = []) {
   }
 
   return profile;
+}
+
+/**
+ * Login con Google — para Editores (desde index.html)
+ * Redirige a Google y vuelve a /auth/callback
+ */
+export async function loginWithGoogleEditor() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/auth/callback?type=editor'
+    }
+  });
+  if (error) throw error;
+}
+
+/**
+ * Login con Google — para Empleados (desde join.html)
+ * Pasa el slug de la empresa para verificar whitelist al volver
+ */
+export async function loginWithGoogleEmployee(companyId, slug) {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + 
+        `/auth/callback?type=employee&company_id=${companyId}&slug=${slug}`
+    }
+  });
+  if (error) throw error;
 }

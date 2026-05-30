@@ -192,6 +192,7 @@
 
     <script type="module">
         import { supabase } from '/js/core/supabase.js';
+        import { loginWithGoogleEmployee } from '/js/core/auth.js';
 
         const joinCard = document.getElementById('join-card');
 
@@ -239,7 +240,27 @@
                 }
 
                 // 3. Todo correcto -> Renderizar la vista principal
-                renderJoinForm(company);
+                renderJoinForm(company, slug);
+
+                // Manejar error de retorno desde Google OAuth
+                const urlError = new URLSearchParams(window.location.search).get('error');
+                if (urlError === 'not_authorized') {
+                  // Mostrar tab de registro con mensaje de error
+                  // El tab y form de registro ya están visibles por defecto o hay que activarlos
+                  const registerError = document.getElementById('register-error');
+                  const requestWrap = document.getElementById('request-access-wrap');
+                  if (registerError) {
+                    registerError.textContent = 'Tu cuenta de Google no está en la lista de acceso de esta empresa.';
+                    registerError.classList.add('visible');
+                  }
+                  if (requestWrap) requestWrap.style.display = 'block';
+                } else if (urlError === 'wrong_company') {
+                  const loginError = document.getElementById('login-error');
+                  if (loginError) {
+                    loginError.textContent = 'Esta cuenta de Google pertenece a otra empresa.';
+                    loginError.classList.add('visible');
+                  }
+                }
 
             } catch (err) {
                 console.error('Error durante la inicialización:', err);
@@ -259,7 +280,7 @@
             `;
         }
 
-        function renderJoinForm(company) {
+        function renderJoinForm(company, slug) {
             joinCard.innerHTML = `
                 <div class="join-header">
                     <div class="join-logo-emoji">🏆</div>
@@ -284,14 +305,20 @@
                     </div>
                     <button type="submit" id="btn-login" class="btn btn-primary">Entrar</button>
                     <div id="login-error" class="join-error"></div>
+                    <div class="join-divider"><span>o</span></div>
+                    <button type="button" id="btn-google-login" class="btn btn-google-join">
+                      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                        <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+                        <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+                        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                      </svg>
+                      Continuar con Google
+                    </button>
                 </form>
 
                 <!-- Formulario Registro -->
                 <form id="form-register" class="join-form" hidden>
-                    <div class="form-group">
-                        <label class="form-label" for="reg-name">Nombre Completo</label>
-                        <input type="text" id="reg-name" class="form-input" placeholder="Juan Pérez" required autocomplete="name">
-                    </div>
                     <div class="form-group">
                         <label class="form-label" for="reg-email">Correo Electrónico</label>
                         <input type="email" id="reg-email" class="form-input" placeholder="tu.correo@empresa.com" required autocomplete="email">
@@ -299,6 +326,10 @@
                     <div class="form-group">
                         <label class="form-label" for="reg-password">Contraseña</label>
                         <input type="password" id="reg-password" class="form-input" placeholder="Mínimo 6 caracteres" minlength="6" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="reg-confirm-password">Confirmar Contraseña</label>
+                        <input type="password" id="reg-confirm-password" class="form-input" placeholder="Confirmar contraseña" minlength="6" required autocomplete="new-password">
                     </div>
                     <button type="submit" id="btn-register" class="btn btn-primary">Crear cuenta</button>
                     <div id="register-error" class="join-error"></div>
@@ -325,6 +356,16 @@
                         font-family: var(--font-body);
                       "></p>
                     </div>
+                    <div class="join-divider"><span>o</span></div>
+                    <button type="button" id="btn-google-register" class="btn btn-google-join">
+                      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                        <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+                        <path d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+                        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                      </svg>
+                      Continuar con Google
+                    </button>
                 </form>
             `;
 
@@ -337,6 +378,28 @@
             const btnRegister = document.getElementById('btn-register');
             const loginError = document.getElementById('login-error');
             const registerError = document.getElementById('register-error');
+
+            // Handler Google Login
+            document.getElementById('btn-google-login')
+              ?.addEventListener('click', async () => {
+                try {
+                  await loginWithGoogleEmployee(company.id, slug);
+                } catch(e) {
+                  loginError.textContent = e.message;
+                  loginError.classList.add('visible');
+                }
+              });
+
+            // Handler Google Register  
+            document.getElementById('btn-google-register')
+              ?.addEventListener('click', async () => {
+                try {
+                  await loginWithGoogleEmployee(company.id, slug);
+                } catch(e) {
+                  registerError.textContent = e.message;
+                  registerError.classList.add('visible');
+                }
+              });
 
             // Switch entre pestañas (tabs)
             tabLogin.addEventListener('click', () => {
@@ -415,10 +478,16 @@
             // Flujo de Registro
             formRegister.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const displayName = document.getElementById('reg-name').value.trim();
                 const email = document.getElementById('reg-email').value.trim();
                 const password = document.getElementById('reg-password').value;
-
+                const confirmPassword = document.getElementById('reg-confirm-password').value;
+ 
+                if (password !== confirmPassword) {
+                    registerError.textContent = 'Las contraseñas no coinciden.';
+                    registerError.classList.add('visible');
+                    return;
+                }
+ 
                 try {
                     registerError.classList.remove('visible');
                     document.getElementById('request-access-wrap').style.display = 'none';
@@ -445,7 +514,7 @@
                             data: {
                                 company_id: company.id,
                                 role: 'employee',
-                                display_name: displayName
+                                display_name: email.split('@')[0]
                             }
                         }
                     });

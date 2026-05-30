@@ -407,3 +407,109 @@ h1, h2, h3, h4, h5, h6 {
 .mt-sm       { margin-top: var(--space-sm); }
 .mt-md       { margin-top: var(--space-md); }
 .mt-lg       { margin-top: var(--space-lg); }
+
+/* ── Divisores y Botón Google Premium ── */
+.auth-divider, .join-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: var(--space-xs) 0;
+}
+
+.auth-divider::before, .auth-divider::after,
+.join-divider::before, .join-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1.5px dashed var(--border-light);
+}
+
+.auth-divider::before, .join-divider::before {
+  margin-right: 10px;
+}
+
+.auth-divider::after, .join-divider::after {
+  margin-left: 10px;
+}
+
+.btn-google, .btn-google-join {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--surface);
+  color: var(--text-main);
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-offset-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-google:hover, .btn-google-join:hover {
+  background: var(--surface-soft);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px var(--border-main);
+}
+
+.btn-google:active, .btn-google-join:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--border-main);
+}
+
+/* ── Onboarding Overlay y Card ── */
+.onboarding-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(36, 50, 74, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  backdrop-filter: blur(8px);
+}
+
+.onboarding-card {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-offset-lg);
+  width: 100%;
+  max-width: 480px;
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.onboarding-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.onboarding-logo {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}

@@ -21,6 +21,61 @@ async function initAlbum() {
   const profile = await guardRoute(['employee', 'editor']);
   if (!profile) return;
 
+  // Si es empleado y no tiene su nombre configurado, mostrar modal de onboarding
+  if (profile.role === 'employee' && !profile.name_set) {
+    const preloader = document.getElementById('album-preloader');
+    if (preloader) preloader.style.display = 'none';
+
+    const nameModal = document.getElementById('employee-name-modal');
+    if (nameModal) nameModal.style.display = 'flex';
+
+    const form = document.getElementById('form-employee-name');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-name-submit');
+      const feedback = document.getElementById('name-feedback');
+      const inputName = document.getElementById('onboard-display-name').value.trim();
+
+      if (!inputName) {
+        feedback.textContent = 'El nombre es obligatorio.';
+        feedback.style.display = 'block';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Guardando...';
+
+      try {
+        const { error } = await supabase
+          .from('user_profiles')
+          .update({ display_name: inputName, name_set: true })
+          .eq('id', profile.id);
+
+        if (error) throw error;
+
+        profile.display_name = inputName;
+        profile.name_set = true;
+
+        nameModal.style.display = 'none';
+        if (preloader) preloader.style.display = 'flex';
+
+        await continueInitAlbum(profile);
+
+      } catch (err) {
+        console.error('Error al guardar nombre:', err);
+        feedback.textContent = err.message || 'Error al guardar el nombre.';
+        feedback.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Comenzar a Coleccionar';
+      }
+    });
+  } else {
+    await continueInitAlbum(profile);
+  }
+}
+
+async function continueInitAlbum(profile) {
   currentTheme = await loadTheme(profile.company_id);
 
   // Obtener el slug de la empresa para el redireccionamiento del logout
