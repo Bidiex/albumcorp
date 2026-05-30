@@ -437,7 +437,7 @@ function renderAlbumHTML(pages) {
   // Limpiar antes de montar
   book.innerHTML = '';
 
-  const companyName = currentTheme?.company_name || 'PaniniCorp';
+  const companyName = currentTheme?.company_name || 'AlbumCorp';
   const logoUrl = currentTheme?.logo_url || null;
   const logoHtml = logoUrl
     ? `<img src="${logoUrl}" alt="${companyName}" class="album-cover-logo">`

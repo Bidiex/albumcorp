@@ -1,4 +1,4 @@
-# PaniniCorp — Plan Maestro de Desarrollo
+# AlbumCorp — Plan Maestro de Desarrollo
 
 > Documento vivo. Cada sección tiene un estado: `[ ]` Pendiente · `[~]` En progreso · `[x]` Completado y testeado
 
