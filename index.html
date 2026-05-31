@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlbumCorp — Álbum de Figuritas para tu Empresa</title>
+    <link rel="icon" type="image/webp" href="/favicon-corpalbum.webp">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -19,7 +20,7 @@
     <nav class="navbar">
         <div class="navbar-container">
             <a href="/" class="navbar-logo">
-                🟢 AlbumCorp
+                <img src="/favicon-corpalbum.webp" alt="AlbumCorp Logo" class="brand-logo"> AlbumCorp
             </a>
             
             <button id="mobile-menu-toggle" class="navbar-toggle" aria-label="Abrir menú">
@@ -75,30 +76,49 @@
                 <div class="section-tag">Todo en uno</div>
                 <h2 class="section-title">Diseñado para crear conexiones reales</h2>
             </div>
-            <div class="features-grid">
-                <!-- Feature 1 -->
-                <div class="feature-card">
-                    <div class="feature-icon">📖</div>
-                    <h3 class="feature-title">Álbum Digital</h3>
-                    <p class="feature-desc">Un álbum virtual interactivo con física de pase de páginas que hace que coleccionar se sienta real y satisfactorio.</p>
+            <div class="features-showcase">
+                <!-- Left Column: Visual Showcase -->
+                <div class="showcase-visual">
+                    <div class="showcase-image-wrapper">
+                        <img src="/album.webp" alt="Álbum Digital Interactivo AlbumCorp" class="showcase-img">
+                        <div class="showcase-badge">Física 3D interactiva ✨</div>
+                    </div>
                 </div>
-                <!-- Feature 2 -->
-                <div class="feature-card">
-                    <div class="feature-icon">🎁</div>
-                    <h3 class="feature-title">Sobres y Misiones</h3>
-                    <p class="feature-desc">Los colaboradores reciben sobres diarios o semanales. Completa retos y gana sobres adicionales para avanzar en tu álbum.</p>
-                </div>
-                <!-- Feature 3 -->
-                <div class="feature-card">
-                    <div class="feature-icon">🧳</div>
-                    <h3 class="feature-title">Centro de Intercambio</h3>
-                    <p class="feature-desc">Un baúl dedicado para tus duplicados. Crea ofertas e intercambia láminas con tus compañeros de forma segura y sencilla.</p>
-                </div>
-                <!-- Feature 4 -->
-                <div class="feature-card">
-                    <div class="feature-icon">🏆</div>
-                    <h3 class="feature-title">Gamificación y Medallas</h3>
-                    <p class="feature-desc">Tabla de posiciones en tiempo real, medallas por completar departamentos enteros y laminitas legendarias de edición especial.</p>
+
+                <!-- Right Column: Features List -->
+                <div class="features-list">
+                    <!-- Feature 1 -->
+                    <div class="feature-item">
+                        <div class="feature-icon">📖</div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Álbum Digital</h3>
+                            <p class="feature-desc">Un álbum virtual interactivo con física de pase de páginas que hace que coleccionar se sienta real y satisfactorio.</p>
+                        </div>
+                    </div>
+                    <!-- Feature 2 -->
+                    <div class="feature-item">
+                        <div class="feature-icon">🎁</div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Sobres y Misiones</h3>
+                            <p class="feature-desc">Los colaboradores reciben sobres diarios o semanales. Completa retos y gana sobres adicionales para avanzar en tu álbum.</p>
+                        </div>
+                    </div>
+                    <!-- Feature 3 -->
+                    <div class="feature-item">
+                        <div class="feature-icon">🧳</div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Centro de Intercambio</h3>
+                            <p class="feature-desc">Un baúl dedicado para tus duplicados. Crea ofertas e intercambia láminas con tus compañeros de forma segura y sencilla.</p>
+                        </div>
+                    </div>
+                    <!-- Feature 4 -->
+                    <div class="feature-item">
+                        <div class="feature-icon">🏆</div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Gamificación y Medallas</h3>
+                            <p class="feature-desc">Tabla de posiciones en tiempo real, medallas por completar departamentos enteros y laminitas legendarias de edición especial.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,24 +131,73 @@
                 <div class="section-tag">Paso a paso</div>
                 <h2 class="section-title">Lanzar tu álbum es sumamente simple</h2>
             </div>
-            <div class="steps-container">
+            <div class="steps-flow-container">
+                <!-- Start Node -->
+                <div class="flow-node flow-start">
+                    <span class="node-dot"></span>
+                    <span class="node-label">Inicio</span>
+                </div>
+                
+                <!-- Arrow Connector -->
+                <div class="flow-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                </div>
+
                 <!-- Step 1 -->
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <h3 class="step-title">Registra tu empresa</h3>
-                    <p class="step-desc">Crea tu cuenta de administrador en segundos y define el dominio de correo corporativo para habilitar el acceso a tus colaboradores.</p>
+                <div class="step-flow-card">
+                    <div class="step-flow-badge">1</div>
+                    <div class="step-flow-media">
+                        🏢
+                    </div>
+                    <div class="step-flow-content">
+                        <h3 class="step-flow-title">Registra tu empresa</h3>
+                        <p class="step-flow-desc">Crea tu cuenta de administrador en segundos y define el dominio de correo corporativo para habilitar el acceso a tus colaboradores.</p>
+                    </div>
                 </div>
+
+                <!-- Arrow Connector -->
+                <div class="flow-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                </div>
+
                 <!-- Step 2 -->
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <h3 class="step-title">Carga tu equipo</h3>
-                    <p class="step-desc">Sube la lista de colaboradores con su nombre, rol y foto. Nuestro sistema convertirá automáticamente cada perfil en una figurita coleccionable.</p>
+                <div class="step-flow-card">
+                    <div class="step-flow-badge">2</div>
+                    <div class="step-flow-media">
+                        👥
+                    </div>
+                    <div class="step-flow-content">
+                        <h3 class="step-flow-title">Carga tu equipo</h3>
+                        <p class="step-flow-desc">Sube la lista de colaboradores con su nombre, rol y foto. Nuestro sistema convertirá automáticamente cada perfil en una figurita coleccionable.</p>
+                    </div>
                 </div>
+
+                <!-- Arrow Connector -->
+                <div class="flow-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                </div>
+
                 <!-- Step 3 -->
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <h3 class="step-title">¡A coleccionar!</h3>
-                    <p class="step-desc">Envía el enlace de acceso. Tus colaboradores podrán iniciar sesión con Google o email, abrir sobres e interactuar en tiempo real.</p>
+                <div class="step-flow-card">
+                    <div class="step-flow-badge">3</div>
+                    <div class="step-flow-media">
+                        ✨
+                    </div>
+                    <div class="step-flow-content">
+                        <h3 class="step-flow-title">¡A coleccionar!</h3>
+                        <p class="step-flow-desc">Envía el enlace de acceso. Tus colaboradores podrán iniciar sesión con Google o email, abrir sobres e intercambiar en tiempo real.</p>
+                    </div>
+                </div>
+
+                <!-- Arrow Connector -->
+                <div class="flow-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                </div>
+
+                <!-- End Node -->
+                <div class="flow-node flow-end">
+                    <span class="node-icon">🎉</span>
+                    <span class="node-label">¡Todo listo!</span>
                 </div>
             </div>
         </div>
@@ -136,6 +205,15 @@
 
     <!-- CTA Section -->
     <section class="cta-banner">
+        <!-- Floating background laminitas -->
+        <div class="cta-floating-cards">
+            <div class="cta-floating-card cta-card-1" style="background-image: url('/laminita1.webp');"></div>
+            <div class="cta-floating-card cta-card-2" style="background-image: url('/laminita2.webp');"></div>
+            <div class="cta-floating-card cta-card-3" style="background-image: url('/laminita3.webp');"></div>
+            <div class="cta-floating-card cta-card-4" style="background-image: url('/laminita4.webp');"></div>
+            <div class="cta-floating-card cta-card-5" style="background-image: url('/laminita5.webp');"></div>
+            <div class="cta-floating-card cta-card-6" style="background-image: url('/laminita6.webp');"></div>
+        </div>
         <div class="landing-container">
             <h2 class="cta-title">¿Listo para conectar a tu equipo?</h2>
             <p class="cta-desc">Lanza AlbumCorp hoy mismo y dale a tus colaboradores una experiencia que recordarán y compartirán.</p>
@@ -146,7 +224,7 @@
     <!-- Footer -->
     <footer class="landing-footer">
         <div class="landing-container">
-            <div class="footer-logo">🟢 AlbumCorp</div>
+            <div class="footer-logo"><img src="/favicon-corpalbum.webp" alt="AlbumCorp Logo" class="brand-logo"> AlbumCorp</div>
             <p class="footer-copy">
                 © 2026 AlbumCorp. Todos los derechos reservados. Barranquilla Colombia
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" width="16" height="11" class="colombia-flag" style="vertical-align: middle; margin-left: 4px; border-radius: 2px; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15);">

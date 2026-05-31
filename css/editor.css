@@ -38,6 +38,9 @@
   font-weight: 900;
   color: var(--primary);
   letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .sidebar-company-name {
@@ -212,6 +215,42 @@
   margin-bottom: var(--space-lg);
 }
 
+.employees-filters {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1;
+}
+
+.employees-filters .form-input,
+.employees-filters .form-select {
+  width: 100%;
+}
+
+.filter-input-group {
+  flex: 2;
+  min-width: 200px;
+}
+
+.filter-select-group {
+  flex: 1;
+  min-width: 155px;
+}
+
+.employees-count {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  border: var(--border-width) solid var(--border-main);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  box-shadow: var(--shadow-offset-sm);
+  white-space: nowrap;
+}
+
 .employees-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -367,6 +406,49 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-md);
+}
+
+/* ── Employee Add Form Layout ── */
+.employee-form-layout {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.employee-form-photos {
+  display: flex;
+  gap: var(--space-md);
+  flex-shrink: 0;
+}
+
+.employee-form-photos .photo-upload {
+  width: 120px;
+}
+
+.employee-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  flex: 1;
+  align-content: start;
+}
+
+.employee-form-fields .full-width {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .employee-form-layout {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  
+  .employee-form-fields {
+    grid-template-columns: 1fr;
+  }
+  
+  .employee-form-fields .full-width {
+    grid-column: span 1;
+  }
 }
 
 /* ── Photo Upload ── */
@@ -1150,4 +1232,109 @@ input[type="range"].legendary-slider::-webkit-slider-thumb {
   margin-left: 6px;
   vertical-align: middle;
 }
+
+/* =============================================
+   Driver.js Custom Theme — AlbumCorp
+   ============================================= */
+.driver-popover {
+  font-family: var(--font-body), sans-serif !important;
+  background-color: var(--surface) !important;
+  border: var(--border-width) solid var(--border-main) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-offset) !important;
+  padding: var(--space-lg) !important;
+  max-width: 320px !important;
+}
+
+.driver-popover-title {
+  font-family: var(--font-heading), sans-serif !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: var(--primary) !important;
+  margin-bottom: var(--space-xs) !important;
+}
+
+.driver-popover-description {
+  font-family: var(--font-body), sans-serif !important;
+  font-size: 0.875rem !important;
+  color: var(--text-secondary) !important;
+  line-height: 1.5 !important;
+  margin-bottom: var(--space-md) !important;
+}
+
+.driver-popover-close-btn {
+  color: var(--text-muted) !important;
+  font-size: 1.25rem !important;
+  top: 12px !important;
+  right: 12px !important;
+  transition: color var(--transition-fast) !important;
+}
+
+.driver-popover-close-btn:hover {
+  color: var(--danger) !important;
+}
+
+.driver-popover-footer {
+  margin-top: var(--space-md) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.driver-popover-progress-text {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: var(--text-muted) !important;
+}
+
+.driver-popover-navigation-btns {
+  display: flex !important;
+  gap: var(--space-xs) !important;
+}
+
+.driver-popover-prev-btn,
+.driver-popover-next-btn {
+  font-family: var(--font-heading), sans-serif !important;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  padding: 6px 12px !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer !important;
+  transition: all var(--transition-fast) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.driver-popover-prev-btn {
+  background-color: var(--surface-soft) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+.driver-popover-prev-btn:hover {
+  background-color: var(--secondary) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-main) !important;
+}
+
+.driver-popover-next-btn {
+  background-color: var(--primary) !important;
+  color: #fff !important;
+  border: var(--border-width) solid var(--border-main) !important;
+}
+
+.driver-popover-next-btn:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: var(--shadow-offset-sm) !important;
+}
+
+.driver-popover-arrow {
+  border-color: var(--border-main) !important;
+}
+
+/* Hide driver.js native buttons default styling */
+.driver-popover-btn {
+  border: none;
+}
+
 

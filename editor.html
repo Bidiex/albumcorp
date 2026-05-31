@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AlbumCorp — Panel del Editor</title>
+  <link rel="icon" type="image/webp" href="/favicon-corpalbum.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -49,7 +50,9 @@
     <!-- ── Sidebar ── -->
     <aside class="editor-sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-name">🃏 AlbumCorp</div>
+        <div class="sidebar-brand-name">
+          <img src="/favicon-corpalbum.webp" alt="AlbumCorp Logo" class="brand-logo"> AlbumCorp
+        </div>
         <div class="sidebar-company-name" id="sidebar-company-name">Cargando...</div>
       </div>
 
@@ -176,12 +179,12 @@
             ➕ Agregar empleado
           </div>
 
-          <div class="form-row" style="margin-bottom: var(--space-md);">
-            <!-- Photo upload -->
-            <div style="display:flex; gap: var(--space-md);">
+          <div class="employee-form-layout" style="margin-bottom: var(--space-md);">
+            <!-- Left: Photo upload -->
+            <div class="employee-form-photos">
               <div class="form-group">
                 <label class="form-label">Foto</label>
-                <div class="photo-upload" style="width: 120px;">
+                <div class="photo-upload">
                   <label class="photo-upload-area" id="photo-drop-area" for="input-photo">
                     <span id="photo-preview-container">
                       <span style="font-size:2rem;">📷</span>
@@ -194,7 +197,7 @@
 
               <div class="form-group">
                 <label class="form-label">Silueta</label>
-                <div class="photo-upload" style="width: 120px;">
+                <div class="photo-upload">
                   <label class="photo-upload-area" id="placeholder-drop-area" for="input-placeholder">
                     <span id="placeholder-preview-container">
                       <span style="font-size:2rem;">👤</span>
@@ -206,15 +209,12 @@
               </div>
             </div>
 
-            <!-- Datos -->
-            <div style="display:flex; flex-direction:column; gap: var(--space-md); flex:1;">
-              <div class="form-group">
+            <!-- Right: Data Fields -->
+            <div class="employee-form-fields">
+              <div class="form-group full-width">
                 <label class="form-label" for="input-emp-name">Nombre completo</label>
                 <input type="text" id="input-emp-name" class="form-input" placeholder="María González">
               </div>
-            </div>
-
-            <div style="display:flex; flex-direction:column; gap: var(--space-md); flex:1;">
               <div class="form-group">
                 <label class="form-label" for="input-emp-section">Sección</label>
                 <select id="input-emp-section" class="form-select">
@@ -242,19 +242,25 @@
 
         <!-- Grid de empleados -->
         <div class="employees-toolbar">
-          <div style="display:flex; gap: var(--space-sm); flex-wrap:wrap; align-items:center;">
-            <input type="text" id="emp-search" class="form-input" style="max-width:220px;" placeholder="🔍 Buscar...">
-            <select id="emp-filter-section" class="form-select" style="max-width:180px;">
-              <option value="">Todas las secciones</option>
-            </select>
-            <select id="emp-filter-rarity" class="form-select" style="max-width:160px;">
-              <option value="">Toda rareza</option>
-              <option value="common">⬜ Común</option>
-              <option value="rare">💜 Mítica</option>
-              <option value="legendary">⭐ Legendario</option>
-            </select>
+          <div class="employees-filters">
+            <div class="filter-input-group">
+              <input type="text" id="emp-search" class="form-input" placeholder="🔍 Buscar por nombre...">
+            </div>
+            <div class="filter-select-group">
+              <select id="emp-filter-section" class="form-select">
+                <option value="">Todas las secciones</option>
+              </select>
+            </div>
+            <div class="filter-select-group">
+              <select id="emp-filter-rarity" class="form-select">
+                <option value="">Toda rareza</option>
+                <option value="common">⬜ Común</option>
+                <option value="rare">💜 Mítica</option>
+                <option value="legendary">⭐ Legendario</option>
+              </select>
+            </div>
           </div>
-          <span id="emp-count" class="text-muted" style="font-size:0.85rem; font-weight:500;"></span>
+          <span id="emp-count" class="employees-count">—</span>
         </div>
 
         <div class="employees-grid" id="employees-grid">

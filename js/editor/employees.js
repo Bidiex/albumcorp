@@ -6,6 +6,7 @@ import { supabase } from '../core/supabase.js';
 import { guardRoute, logoutUser } from '../core/auth.js';
 import { initThemeEditor } from './theme-editor.js';
 import * as XLSX from 'xlsx';
+import { initTour } from './tour.js';
 
 // ── Estado global de la sesión ──
 let profile = null;
@@ -192,6 +193,7 @@ async function continueInit() {
   loadGrantSection();
   setupMilestones();
   loadMilestones();
+  initTour();
 }
 
 // ══════════════════════════════════════════════
