@@ -273,13 +273,13 @@ function renderSections() {
   list.innerHTML = sections.map(sec => {
     const count = employees.filter(e => e.section_id === sec.id).length;
     return `
-      <div class="section-row" data-id="${sec.id}">
+      <div class="section-row" data-id="${escapeHtml(sec.id)}">
         <span class="section-row-drag">⠿</span>
         <span class="section-row-name">${escapeHtml(sec.name)}</span>
         <span class="section-row-count">${count} empleado${count !== 1 ? 's' : ''}</span>
         <div class="section-row-actions">
-          <button class="btn btn-ghost btn-sm btn-rename-section" data-id="${sec.id}" data-name="${escapeHtml(sec.name)}">✏️</button>
-          <button class="btn btn-danger btn-sm btn-delete-section" data-id="${sec.id}">🗑️</button>
+          <button class="btn btn-ghost btn-sm btn-rename-section" data-id="${escapeHtml(sec.id)}" data-name="${escapeHtml(sec.name)}">✏️</button>
+          <button class="btn btn-danger btn-sm btn-delete-section" data-id="${escapeHtml(sec.id)}">🗑️</button>
         </div>
       </div>`;
   }).join('');
@@ -303,7 +303,7 @@ function renderSections() {
 }
 
 function populateSectionSelects() {
-  const options = sections.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+  const options = sections.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('');
   const emptyOption = '<option value="">— Sin sección —</option>';
 
   $('input-emp-section').innerHTML = emptyOption + options;
@@ -388,11 +388,11 @@ function renderEmployees(list) {
     const photo = emp.photo_url
       ? `<img src="${escapeHtml(emp.photo_url)}" alt="${escapeHtml(emp.name)}" loading="lazy">`
       : `<span>${escapeHtml(initials)}</span>`;
-    const rarityBadge = `<span class="badge badge-${emp.rarity} rarity-indicator">${rarityLabel(emp.rarity)}</span>`;
+    const rarityBadge = `<span class="badge badge-${escapeHtml(emp.rarity)} rarity-indicator">${escapeHtml(rarityLabel(emp.rarity))}</span>`;
     const sec = sections.find(s => s.id === emp.section_id);
 
     return `
-      <div class="employee-card" data-id="${emp.id}">
+      <div class="employee-card" data-id="${escapeHtml(emp.id)}">
         <div class="employee-card-photo">
           ${photo}
           ${rarityBadge}
@@ -404,8 +404,8 @@ function renderEmployees(list) {
           ${sec ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">📘 ${escapeHtml(sec.name)}</div>` : ''}
         </div>
         <div class="employee-card-actions">
-          <button class="btn btn-ghost btn-sm btn-edit-emp" data-id="${emp.id}" style="flex:1;">✏️ Editar</button>
-          <button class="btn btn-danger btn-sm btn-del-emp" data-id="${emp.id}">🗑️</button>
+          <button class="btn btn-ghost btn-sm btn-edit-emp" data-id="${escapeHtml(emp.id)}" style="flex:1;">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm btn-del-emp" data-id="${escapeHtml(emp.id)}">🗑️</button>
         </div>
       </div>`;
   }).join('');
