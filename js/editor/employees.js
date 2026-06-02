@@ -5,8 +5,9 @@
 import { supabase } from '../core/supabase.js';
 import { guardRoute, logoutUser } from '../core/auth.js';
 import { initThemeEditor } from './theme-editor.js';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { initTour } from './tour.js';
+import { escapeHtml } from '../core/security.js';
 
 // ── Estado global de la sesión ──
 let profile = null;
@@ -274,10 +275,10 @@ function renderSections() {
     return `
       <div class="section-row" data-id="${sec.id}">
         <span class="section-row-drag">⠿</span>
-        <span class="section-row-name">${sec.name}</span>
+        <span class="section-row-name">${escapeHtml(sec.name)}</span>
         <span class="section-row-count">${count} empleado${count !== 1 ? 's' : ''}</span>
         <div class="section-row-actions">
-          <button class="btn btn-ghost btn-sm btn-rename-section" data-id="${sec.id}" data-name="${sec.name}">✏️</button>
+          <button class="btn btn-ghost btn-sm btn-rename-section" data-id="${sec.id}" data-name="${escapeHtml(sec.name)}">✏️</button>
           <button class="btn btn-danger btn-sm btn-delete-section" data-id="${sec.id}">🗑️</button>
         </div>
       </div>`;
@@ -302,7 +303,7 @@ function renderSections() {
 }
 
 function populateSectionSelects() {
-  const options = sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  const options = sections.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
   const emptyOption = '<option value="">— Sin sección —</option>';
 
   $('input-emp-section').innerHTML = emptyOption + options;
@@ -385,8 +386,8 @@ function renderEmployees(list) {
   grid.innerHTML = list.map(emp => {
     const initials = emp.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     const photo = emp.photo_url
-      ? `<img src="${emp.photo_url}" alt="${emp.name}" loading="lazy">`
-      : `<span>${initials}</span>`;
+      ? `<img src="${escapeHtml(emp.photo_url)}" alt="${escapeHtml(emp.name)}" loading="lazy">`
+      : `<span>${escapeHtml(initials)}</span>`;
     const rarityBadge = `<span class="badge badge-${emp.rarity} rarity-indicator">${rarityLabel(emp.rarity)}</span>`;
     const sec = sections.find(s => s.id === emp.section_id);
 
@@ -397,10 +398,10 @@ function renderEmployees(list) {
           ${rarityBadge}
         </div>
         <div class="employee-card-body">
-          <div class="employee-card-name" title="${emp.name}">${emp.name}</div>
-          <div class="employee-card-role" title="${emp.role || '—'}">${emp.role || '—'}</div>
-          <div class="employee-card-code">${emp.code}</div>
-          ${sec ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">📘 ${sec.name}</div>` : ''}
+          <div class="employee-card-name" title="${escapeHtml(emp.name)}">${escapeHtml(emp.name)}</div>
+          <div class="employee-card-role" title="${escapeHtml(emp.role || '—')}">${escapeHtml(emp.role || '—')}</div>
+          <div class="employee-card-code">${escapeHtml(emp.code)}</div>
+          ${sec ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">📘 ${escapeHtml(sec.name)}</div>` : ''}
         </div>
         <div class="employee-card-actions">
           <button class="btn btn-ghost btn-sm btn-edit-emp" data-id="${emp.id}" style="flex:1;">✏️ Editar</button>
@@ -513,7 +514,7 @@ function setupPhotoUpload() {
 }
 
 function showPhotoPreview(url, containerId = 'photo-preview-container') {
-  $(containerId).innerHTML = `<img src="${url}" class="photo-upload-preview" alt="Preview">`;
+  $(containerId).innerHTML = `<img src="${escapeHtml(url)}" class="photo-upload-preview" alt="Preview">`;
 }
 
 function resetPhotoPreview() {
@@ -721,13 +722,13 @@ function loadLayoutPreview() {
     const slots = Array.from({ length: slotCount }, (_, i) => {
       const emp = pageEmps.find(e => e.position === i + 1);
       return emp
-        ? `<div class="page-slot filled" title="${emp.name}">${emp.name.split(' ')[0]}</div>`
+        ? `<div class="page-slot filled" title="${escapeHtml(emp.name)}">${escapeHtml(emp.name.split(' ')[0])}</div>`
         : `<div class="page-slot">${i + 1}</div>`;
     }).join('');
 
     html += `
       <div class="page-preview">
-        <div class="page-preview-header">${label}</div>
+        <div class="page-preview-header">${escapeHtml(label)}</div>
         <div class="page-preview-grid" style="grid-template-columns: repeat(${cols}, 1fr);">${slots}</div>
       </div>`;
   }
@@ -854,10 +855,10 @@ function addPageBgRow(pageNum = '', currentUrl = null) {
   row.className = 'page-bg-row';
   row.style.cssText = 'display: flex; gap: var(--space-sm); align-items: center; border: 1px solid var(--border-light); padding: 8px; border-radius: var(--radius-sm);';
   
-  let linkHtml = currentUrl ? `<a href="${currentUrl}" target="_blank" style="font-size:0.8rem; color:var(--primary); margin-left:8px;" data-current="${currentUrl}">🔗 Ver actual</a>` : '';
+  let linkHtml = currentUrl ? `<a href="${escapeHtml(currentUrl)}" target="_blank" style="font-size:0.8rem; color:var(--primary); margin-left:8px;" data-current="${escapeHtml(currentUrl)}">🔗 Ver actual</a>` : '';
 
   row.innerHTML = `
-    <input type="number" class="form-input page-bg-num" placeholder="Pág N°" value="${pageNum}" min="1" style="width: 80px;">
+    <input type="number" class="form-input page-bg-num" placeholder="Pág N°" value="${escapeHtml(pageNum)}" min="1" style="width: 80px;">
     <input type="file" class="form-input page-bg-file" accept="image/*" style="flex:1;">
     ${linkHtml}
     <button class="btn btn-danger btn-sm btn-remove-bg">❌</button>
@@ -924,8 +925,8 @@ function setupAccesos() {
   document.getElementById('btn-add-email')
     ?.addEventListener('click', addEmail);
 
-  document.getElementById('btn-import-xlsx')
-    ?.addEventListener('click', importAllowedEmailsFromXlsx);
+  document.getElementById('btn-import-excel')
+    ?.addEventListener('click', importAllowedEmailsFromExcel);
 
   document.querySelectorAll('.accesos-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -1027,14 +1028,14 @@ function renderAccesosList(data) {
   data.forEach(({ id, email, display_name, is_registered }) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="email-row__text" style="font-weight: 500;">${email}</span></td>
+      <td><span class="email-row__text" style="font-weight: 500;">${escapeHtml(email)}</span></td>
       <td>
         <span class="email-row__name ${is_registered ? 'email-row__name--registered' : 'email-row__name--pending'}">
-          ${is_registered ? `🟢 ${display_name}` : '⏳ Sin registrar'}
+          ${is_registered ? `🟢 ${escapeHtml(display_name)}` : '⏳ Sin registrar'}
         </span>
       </td>
       <td class="actions">
-        <button class="email-row__delete" data-id="${id}">✕</button>
+        <button class="email-row__delete" data-id="${escapeHtml(id)}">✕</button>
       </td>
     `;
     tr.querySelector('.email-row__delete')
@@ -1043,9 +1044,9 @@ function renderAccesosList(data) {
   });
 }
 
-async function importAllowedEmailsFromXlsx() {
-  const fileInput = document.getElementById('input-xlsx-file');
-  const btn = document.getElementById('btn-import-xlsx');
+async function importAllowedEmailsFromExcel() {
+  const fileInput = document.getElementById('input-excel-file');
+  const btn = document.getElementById('btn-import-excel');
   if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
     showFeedback('accesos-feedback', 'Por favor, selecciona un archivo Excel (.xlsx o .xls).', 'error');
     return;
@@ -1059,15 +1060,17 @@ async function importAllowedEmailsFromXlsx() {
   const reader = new FileReader();
   reader.onload = async (e) => {
     try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      if (workbook.SheetNames.length === 0) {
-        throw new Error('El archivo Excel está vacío.');
+      const arrayBuffer = e.target.result;
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
+      const worksheet = workbook.worksheets[0];
+      if (!worksheet) {
+        throw new Error('El archivo Excel está vacío o no contiene hojas.');
       }
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      
-      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const json = [];
+      worksheet.eachRow({ includeEmpty: false }, (row) => {
+        json.push(row.values.slice(1)); // slice(1) porque ExcelJS indexa desde 1
+      });
       const emails = [];
       
       json.forEach(row => {
@@ -1293,15 +1296,15 @@ function renderGrantsList(data) {
   data.forEach(grant => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span style="font-weight: 600; color: var(--warning-dark);">⭐ ${grant.employee_name || '?'}</span></td>
-      <td><span style="font-weight: 500;">👤 ${grant.user_display_name || '?'}</span></td>
+      <td><span style="font-weight: 600; color: var(--warning-dark);">⭐ ${escapeHtml(grant.employee_name || '?')}</span></td>
+      <td><span style="font-weight: 500;">👤 ${escapeHtml(grant.user_display_name || '?')}</span></td>
       <td>
         <span style="font-size: 0.85rem; color: var(--text-secondary);">
           ${new Date(grant.granted_at).toLocaleDateString('es-CO')}
         </span>
       </td>
       <td class="actions" style="text-align: right;">
-        <button class="email-row__delete" style="padding: 4px 8px; box-shadow: none;" data-id="${grant.id}">✕</button>
+        <button class="email-row__delete" style="padding: 4px 8px; box-shadow: none;" data-id="${escapeHtml(grant.id)}">✕</button>
       </td>
     `;
     tr.querySelector('.email-row__delete')
@@ -1421,11 +1424,11 @@ function renderEditorRankingList(data) {
       entry.position == 3 ? '🥉' : `#${entry.position}`;
 
     tr.innerHTML = `
-      <td><span style="font-family: var(--font-heading); font-weight: 800; font-size: 1.05rem;">${medal}</span></td>
-      <td><span style="font-weight: 500;">${entry.display_name}</span></td>
+      <td><span style="font-family: var(--font-heading); font-weight: 800; font-size: 1.05rem;">${escapeHtml(medal)}</span></td>
+      <td><span style="font-weight: 500;">${escapeHtml(entry.display_name)}</span></td>
       <td style="text-align: right;">
         <span class="badge badge-rare" style="color: var(--primary-dark); background: var(--surface-soft); border-color: var(--primary); font-size: 0.85rem; font-weight: 800; display: inline-flex;">
-          ${entry.stickers_count} laminitas
+          ${escapeHtml(String(entry.stickers_count))} laminitas
         </span>
       </td>
     `;
@@ -1456,7 +1459,7 @@ function setupMilestones() {
       // Preview inmediato
       const preview = document.getElementById(`milestone-preview-${level}`);
       if (preview) {
-        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Preview nivel ${level}">`;
+        preview.innerHTML = `<img src="${escapeHtml(URL.createObjectURL(file))}" alt="Preview nivel ${escapeHtml(String(level))}">`;
       }
     });
   }
@@ -1487,7 +1490,7 @@ async function loadMilestones() {
     if (m.image_url) {
       const preview = document.getElementById(`milestone-preview-${level}`);
       if (preview) {
-        preview.innerHTML = `<img src="${m.image_url}" alt="Medalla nivel ${level}">`;
+        preview.innerHTML = `<img src="${escapeHtml(m.image_url)}" alt="Medalla nivel ${escapeHtml(String(level))}">`;
       }
 
       const urlWrap = document.getElementById(`milestone-current-url-${level}`);
@@ -1635,7 +1638,7 @@ function confirmAction(message, onConfirm) {
         color: var(--text-main);
         margin: 0;
         line-height: 1.5;
-      ">${message}</p>
+      ">${escapeHtml(message)}</p>
       <div style="display:flex; gap: var(--space-sm); justify-content: flex-end;">
         <button id="confirm-cancel" class="btn btn-ghost">
           Cancelar
@@ -1737,7 +1740,7 @@ function renderAccessRequestsList(data) {
     const isPending = req.status === 'pending';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="email-row__text" style="font-weight: 500;">${req.email}</span></td>
+      <td><span class="email-row__text" style="font-weight: 500;">${escapeHtml(req.email)}</span></td>
       <td>
         <span style="font-size: 0.85rem; color: var(--text-secondary);">
           ${new Date(req.requested_at).toLocaleDateString('es-CO')}
@@ -1752,12 +1755,12 @@ function renderAccessRequestsList(data) {
         ${isPending ? `
           <div style="display:inline-flex; gap:6px; justify-content: flex-end;">
             <button class="btn btn-primary btn-sm req-approve" 
-              data-id="${req.id}" data-email="${req.email}"
+              data-id="${escapeHtml(req.id)}" data-email="${escapeHtml(req.email)}"
               style="padding:4px 10px; font-size:0.8rem; box-shadow: none;">
               ✓
             </button>
             <button class="btn btn-ghost btn-sm req-reject"
-              data-id="${req.id}"
+              data-id="${escapeHtml(req.id)}"
               style="padding:4px 10px; font-size:0.8rem; color:var(--danger); box-shadow: none;">
               ✕
             </button>
