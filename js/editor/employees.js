@@ -597,6 +597,9 @@ async function saveEmployee() {
   const payload = { company_id: companyId, name, section_id: sectionId, rarity };
   if (photoUrl !== null) payload.photo_url = photoUrl;
   if (placeholderUrl !== null) payload.placeholder_url = placeholderUrl;
+  if (rarity === 'legendary') {
+    payload.is_active = true;
+  }
 
   let error;
   if (editingEmployeeId) {
@@ -1213,7 +1216,6 @@ async function loadLegendariesForGrant() {
     .select('id, name')
     .eq('company_id', companyId)
     .eq('rarity', 'legendary')
-    .eq('is_active', true)
     .order('name');
 
   if (!data || data.length === 0) {
@@ -1407,6 +1409,7 @@ function renderEditorRankingList(data) {
             <th style="width: 100px;">Posición</th>
             <th>Nombre del Empleado</th>
             <th style="text-align: right;">Laminitas Coleccionadas</th>
+            <th style="text-align: right; width: 220px;">Acción</th>
           </tr>
         </thead>
         <tbody id="ranking-table-body">
@@ -1431,8 +1434,73 @@ function renderEditorRankingList(data) {
           ${escapeHtml(String(entry.stickers_count))} laminitas
         </span>
       </td>
+      <td style="text-align: right;" class="grant-cell">
+      </td>
     `;
+    const grantCell = tr.querySelector('.grant-cell');
+    showGrantTriggerButton(grantCell, entry.user_id);
     tbody.appendChild(tr);
+  });
+}
+
+function showGrantControl(container, userId) {
+  container.innerHTML = `
+    <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
+      <input type="number" class="form-input grant-packs-input" value="1" min="1" max="10" style="width: 60px; padding: 4px 6px; font-size: 0.85rem; height: 28px;">
+      <button class="btn btn-primary btn-sm btn-confirm-grant" style="padding: 4px 8px; font-size: 0.8rem; height: 28px; line-height: 1;">✓</button>
+      <button class="btn btn-ghost btn-sm btn-cancel-grant" style="padding: 4px 8px; font-size: 0.8rem; color: var(--danger); height: 28px; line-height: 1;">✕</button>
+    </div>
+  `;
+
+  const input = container.querySelector('.grant-packs-input');
+  const confirmBtn = container.querySelector('.btn-confirm-grant');
+  const cancelBtn = container.querySelector('.btn-cancel-grant');
+
+  cancelBtn.addEventListener('click', () => {
+    showGrantTriggerButton(container, userId);
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    const amount = parseInt(input.value) || 0;
+    if (amount < 1 || amount > 10) {
+      alert('La cantidad de sobres debe estar entre 1 y 10.');
+      return;
+    }
+
+    confirmBtn.disabled = true;
+    cancelBtn.disabled = true;
+    input.disabled = true;
+    confirmBtn.textContent = '⏳';
+
+    try {
+      const { data: newTotal, error } = await supabase.rpc('fn_grant_packs', {
+        p_user_id: userId,
+        p_amount: amount
+      });
+
+      if (error) throw error;
+
+      container.innerHTML = `<span style="font-size: 0.85rem; color: var(--success); font-weight: bold;">✨ ¡Otorgados! (Total: ` + newTotal + ` sobres)</span>`;
+      setTimeout(() => {
+        showGrantTriggerButton(container, userId);
+      }, 3000);
+
+    } catch (err) {
+      console.error('Error al otorgar sobres:', err);
+      alert('Error: ' + (err.message || 'No se pudieron otorgar los sobres.'));
+      showGrantTriggerButton(container, userId);
+    }
+  });
+}
+
+function showGrantTriggerButton(container, userId) {
+  container.innerHTML = `
+    <button class="btn btn-ghost btn-sm btn-grant-packs-trigger" style="font-size: 0.8rem; color: var(--primary);">
+      🎁 Otorgar sobres
+    </button>
+  `;
+  container.querySelector('.btn-grant-packs-trigger').addEventListener('click', () => {
+    showGrantControl(container, userId);
   });
 }
 
@@ -1444,6 +1512,8 @@ function renderEditorRankingList(data) {
 const _milestoneFiles = {};
 // IDs de los registros existentes en DB (para upsert)
 const _milestoneIds   = {};
+// Indica si cada nivel ya tiene una imagen en DB
+const _milestoneHasImage = {};
 
 function setupMilestones() {
   // Listeners de archivo por cada nivel
@@ -1477,6 +1547,7 @@ async function loadMilestones() {
   data.forEach(m => {
     const level = m.level;
     _milestoneIds[level] = m.id;
+    _milestoneHasImage[level] = !!m.image_url;
 
     // Poblar threshold
     const thresholdInput = document.getElementById(`milestone-threshold-${level}`);
@@ -1507,6 +1578,18 @@ async function saveMilestones() {
   const btn = document.getElementById('btn-save-milestones');
   btn.disabled = true;
   btn.textContent = '⏳ Guardando...';
+
+  // Validar que todos los niveles tengan imagen (ya sea existente en DB o un archivo nuevo seleccionado)
+  for (let level = 1; level <= 4; level++) {
+    const hasExisting = _milestoneHasImage[level];
+    const hasNewFile = !!_milestoneFiles[level];
+    if (!hasExisting && !hasNewFile) {
+      showFeedback('milestones-feedback', `El Nivel ${level} debe tener una imagen asociada (sube una imagen).`, 'error');
+      btn.disabled = false;
+      btn.textContent = '💾 Guardar hitos';
+      return;
+    }
+  }
 
   let hasError = false;
 
@@ -1560,7 +1643,10 @@ async function saveMilestones() {
       label,
       updated_at: new Date().toISOString()
     };
-    if (imageUrl) payload.image_url = imageUrl;
+    if (imageUrl) {
+      payload.image_url = imageUrl;
+      _milestoneHasImage[level] = true;
+    }
 
     const existingId = _milestoneIds[level];
 

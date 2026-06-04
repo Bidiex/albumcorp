@@ -32,18 +32,34 @@ let _modalShowing = false;
 export async function initMilestones(profile, total, collectedIds) {
   _totalEmployees = total;
 
-  const [configRes, userRes] = await Promise.all([
-    supabase.rpc('fn_get_milestones_config', { p_company_id: profile.company_id }),
-    supabase.rpc('fn_get_user_milestones',   { p_company_id: profile.company_id })
-  ]);
+  try {
+    const [configRes, userRes] = await Promise.all([
+      supabase.rpc('fn_get_milestones_config', { p_company_id: profile.company_id }),
+      supabase.rpc('fn_get_user_milestones',   { p_company_id: profile.company_id })
+    ]);
 
-  _milestonesConfig = configRes.data || [];
-  _userMilestones   = userRes.data   || [];
-  _initialized      = true;
+    if (configRes.error) {
+      console.error('Error fetching milestones config:', configRes.error);
+      throw configRes.error;
+    }
+    if (userRes.error) {
+      console.error('Error fetching user milestones:', userRes.error);
+      throw userRes.error;
+    }
 
-  // Verificar hitos pendientes al cargar (para usuarios con laminitas previas)
-  if (collectedIds && collectedIds.size > 0 && _milestonesConfig.length > 0) {
-    await checkMilestones(collectedIds);
+    _milestonesConfig = configRes.data || [];
+    _userMilestones   = userRes.data   || [];
+    _initialized      = true;
+
+    // Verificar hitos pendientes al cargar (para usuarios con laminitas previas)
+    if (collectedIds && collectedIds.size > 0 && _milestonesConfig.length > 0) {
+      await checkMilestones(collectedIds);
+    }
+  } catch (err) {
+    console.error('Failed to initialize milestones module:', err);
+    _milestonesConfig = [];
+    _userMilestones = [];
+    _initialized = false;
   }
 }
 

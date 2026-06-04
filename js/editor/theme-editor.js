@@ -1,5 +1,6 @@
 import { supabase } from '../core/supabase.js';
 import { PALETTES, applyTheme } from '../core/theme.js';
+import { generateUUID } from '../core/utils.js';
 
 const PALETTE_DESCRIPTIONS = {
   obsidiana: 'Negro profundo con acentos esmeralda. Máximo contraste.',
@@ -123,7 +124,7 @@ function addCustomPageRow(sectionId = '', position = 'before', imageUrl = '', id
   const container = document.getElementById('custom-pages-container');
   if (!container) return;
 
-  const rowId = id || crypto.randomUUID();
+  const rowId = id || generateUUID();
 
   const row = document.createElement('div');
   row.className = 'custom-page-row';
@@ -192,7 +193,7 @@ async function buildCustomPagesPayload() {
     const position  = row.querySelector('.custom-page-position')?.value;
     const fileInput = row.querySelector('.custom-page-file');
     let   imageUrl  = row.querySelector('.custom-page-url')?.value || '';
-    const rowId     = row.querySelector('.custom-page-id')?.value  || crypto.randomUUID();
+    const rowId     = row.querySelector('.custom-page-id')?.value  || generateUUID();
 
     if (!sectionId) continue; // Skip rows without a section selected
 
